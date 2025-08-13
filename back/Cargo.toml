@@ -1,0 +1,10 @@
+[package]
+name = "back"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.8.4"
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls"] }
+tokio = { version = "1.47.1", features = ["full"] }
+tower-http = { version = "0.6.6", features = ["compression-gzip", "cors", "fs", "limit", "normalize-path", "set-header", "set-status", "timeout"] }
