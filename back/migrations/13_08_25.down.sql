@@ -16,5 +16,9 @@ DROP TABLE IF EXISTS countries CASCADE;
 
 DROP INDEX IF EXISTS idx_taxes_tax_rate;
 DROP INDEX IF EXISTS idx_invoices_number_seller;
+DROP INDEX IF EXISTS idx_invoice_details_invoice_seller;
+DROP INDEX IF EXISTS idx_expense_details_expense_seller;
+DROP INDEX IF EXISTS idx_expenses_vendor_seller;
+DROP INDEX IF EXISTS idx_expenses_category_seller;
 
 -- DROP EXTENSION IF EXISTS "uuid-ossp";
