@@ -58,6 +58,7 @@ CREATE TABLE vendors (
     address VARCHAR(255) NOT NULL,
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     seller_id INTEGER NOT NULL,
     vat_number VARCHAR(20) NOT NULL
 );
@@ -192,6 +193,7 @@ ALTER TABLE expense_details
   --  address varchar(255) [not null]
   --  id integer [primary key]
   --  name varchar(255) [not null]
+  --  public_id uuid [not null, unique]
   --  seller_id integer [not null, ref: > sellers.id]
   --  vat_number varchar(20) [not null]
 --  }
