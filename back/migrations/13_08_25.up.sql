@@ -24,7 +24,6 @@ CREATE TABLE sellers (
     email VARCHAR(255) NOT NULL UNIQUE,
     hashed_password VARCHAR(128) NOT NULL,
     id SERIAL PRIMARY KEY,
-    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     name VARCHAR(255) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
     public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
@@ -170,7 +169,6 @@ ALTER TABLE expense_details
   --  email varchar(255) [not null, unique]
   --  hashed_password varchar(128) [not null]
   --  id integer [primary key]
-  --  is_admin boolean [not null]
   --  name varchar(255) [not null]
   --  postal_code varchar(20) [not null]
   --  public_id uuid [not null, unique]
