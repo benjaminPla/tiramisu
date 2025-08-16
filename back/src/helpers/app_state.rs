@@ -6,20 +6,20 @@ use std::sync::Arc;
 pub struct EnvVars {
     pub db_conn_string: String,
     pub db_max_conn: u32,
-    pub timeout_duration: u64
+    pub timeout_duration: u64,
 }
 
 #[derive(Clone)]
 pub struct AppState {
     pub env_vars: EnvVars,
-    pub db: PgPool,
+    pub db_pool: PgPool,
 }
 
 impl AppState {
     pub async fn new() -> Result<Arc<Self>, String> {
         let env_vars = Self::load_env_vars()?;
-        let db = Self::create_db_pool(&env_vars).await?;
-        Ok(Arc::new(Self { env_vars, db }))
+        let db_pool = Self::create_db_pool(&env_vars).await?;
+        Ok(Arc::new(Self { env_vars, db_pool }))
     }
 
     fn load_env_vars() -> Result<EnvVars, String> {

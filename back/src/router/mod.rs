@@ -1,8 +1,10 @@
 mod others;
+mod sellers;
 
 use crate::helpers::app_state::AppState;
 use axum::{http::HeaderValue, Router};
 use others::OthersRouter;
+use sellers::SellersRouter;
 use std::sync::Arc;
 use std::time::Duration;
 use tower_http::{
@@ -20,6 +22,7 @@ impl MainRouter {
                 "/api",
                 Router::new()
                     .nest("/others", OthersRouter::new())
+                    .nest("/sellers", SellersRouter::new())
                     .with_state(app_state.clone()),
             )
             .layer(Self::cors())
