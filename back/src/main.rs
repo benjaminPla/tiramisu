@@ -1,6 +1,7 @@
 mod controllers;
 mod helpers;
 mod macros;
+mod middlewares;
 mod models;
 mod router;
 

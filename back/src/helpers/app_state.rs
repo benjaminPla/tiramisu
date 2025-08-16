@@ -6,6 +6,7 @@ use std::sync::Arc;
 pub struct EnvVars {
     pub db_conn_string: String,
     pub db_max_conn: u32,
+    pub jwt_secret: String,
     pub timeout_duration: u64,
 }
 
@@ -25,10 +26,12 @@ impl AppState {
     fn load_env_vars() -> Result<EnvVars, String> {
         let db_conn_string = Self::get_env_var("DB_CONN_STRING")?;
         let db_max_conn = Self::get_env_var_parse::<u32>("DB_MAX_CONN")?;
+        let jwt_secret = Self::get_env_var("JWT_SECRET")?;
         let timeout_duration = Self::get_env_var_parse::<u64>("TIMEOUT_DURATION")?;
         Ok(EnvVars {
             db_conn_string,
             db_max_conn,
+            jwt_secret,
             timeout_duration,
         })
     }

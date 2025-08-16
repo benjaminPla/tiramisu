@@ -1,5 +1,5 @@
 #[macro_export]
-macro_rules! http_error {
+macro_rules! error {
     ($status:expr) => {{
         use axum::http::StatusCode;
         let message = match $status {

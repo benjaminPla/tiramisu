@@ -1,5 +1,5 @@
+use crate::error;
 use crate::helpers::app_state::AppState;
-use crate::http_error;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
     Argon2,
@@ -29,7 +29,7 @@ pub async fn handler(
     let argon2 = Argon2::default();
     let hashed_password = argon2
         .hash_password(&body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .map_err(|e| http_error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?
+        .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?
         .to_string();
 
     query(
@@ -59,7 +59,7 @@ pub async fn handler(
     .bind(&body.vat_number)
     .execute(&app_state.db_pool)
     .await
-    .map_err(|e| http_error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
+    .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
     Ok(StatusCode::CREATED)
 }

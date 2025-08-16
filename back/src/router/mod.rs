@@ -22,7 +22,7 @@ impl MainRouter {
                 "/api",
                 Router::new()
                     .nest("/others", OthersRouter::new())
-                    .nest("/sellers", SellersRouter::new())
+                    .nest("/sellers", SellersRouter::new(app_state.clone()))
                     .with_state(app_state.clone()),
             )
             .layer(Self::cors())
