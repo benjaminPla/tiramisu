@@ -1,10 +1,11 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
+use crate::models::JWTClaims;
+use axum::{
+    extract::{Extension, State},
+    http::StatusCode,
+    response::Json,
 };
-use axum::{extract::State, http::StatusCode, response::Json};
 use serde::Deserialize;
 use sqlx::query;
 use std::sync::Arc;
@@ -16,7 +17,6 @@ pub struct Body {
     city: String,
     country: String,
     email: String,
-    password: String,
     name: String,
     postal_code: String,
     vat_number: String,
@@ -24,28 +24,21 @@ pub struct Body {
 
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
+    Extension(claims): Extension<JWTClaims>,
     Json(body): Json<Body>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    let argon2 = Argon2::default();
-    let hashed_password = argon2
-        .hash_password(&body.password.as_bytes(), &SaltString::generate(&mut OsRng))
-        .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?
-        .to_string();
-
-    query(
+    let db_result = query(
         "
-        INSERT INTO sellers (
-            address,
-            bank_account,
-            city,
-            country,
-            email,
-            hashed_password,
-            name,
-            postal_code,
-            vat_number
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        UPDATE sellers SET
+            address = $1,
+            bank_account = $2,
+            city = $3,
+            country = $4,
+            email = $5,
+            name = $6,
+            postal_code = $7,
+            vat_number = $8
+        WHERE public_id = $9::uuid
     ",
     )
     .bind(&body.address)
@@ -53,13 +46,17 @@ pub async fn handler(
     .bind(&body.city)
     .bind(&body.country)
     .bind(&body.email)
-    .bind(&hashed_password)
     .bind(&body.name)
     .bind(&body.postal_code)
     .bind(&body.vat_number)
+    .bind(&claims.sub)
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    Ok(StatusCode::CREATED)
+    if db_result.rows_affected() == 0 {
+        return Err(error!(StatusCode::NOT_FOUND));
+    }
+
+    Ok(StatusCode::OK)
 }

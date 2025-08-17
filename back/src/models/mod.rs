@@ -1,4 +1,11 @@
-use sqlx::{FromRow, types::Uuid};
+use serde::{Deserialize, Serialize};
+use sqlx::{types::Uuid, FromRow};
+
+#[derive(Clone, Deserialize, Serialize)]
+pub struct JWTClaims {
+    pub exp: usize,
+    pub sub: String,
+}
 
 #[derive(FromRow)]
 pub struct Seller {

@@ -1,5 +1,6 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
+use crate::models::JWTClaims;
 use axum::{
     body::Body,
     extract::State,
@@ -8,14 +9,7 @@ use axum::{
     response::Response,
 };
 use jsonwebtoken::{decode, errors::ErrorKind, Algorithm, DecodingKey, Validation};
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-#[derive(Clone, Deserialize, Serialize)]
-pub struct JWTClaims {
-    pub exp: usize,
-    pub sub: String,
-}
 
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
@@ -24,8 +18,8 @@ pub async fn handler(
     next: Next,
 ) -> Result<Response, (StatusCode, String)> {
     let token = headers
-        .get("authorization")
-        .ok_or(error!(StatusCode::UNAUTHORIZED))?
+        .get("Authorization")
+        .ok_or_else(|| error!(StatusCode::UNAUTHORIZED))?
         .to_str()
         .map_err(|e| error!(StatusCode::UNAUTHORIZED, err:e))?;
 
