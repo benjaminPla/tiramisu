@@ -9,16 +9,14 @@ use axum::{
 use serde::Deserialize;
 use sqlx::query;
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Deserialize)]
 pub struct Body {
-    address: String,
-    city: String,
-    country: String,
-    email: String,
-    name: String,
-    postal_code: String,
-    vat_number: String,
+    buyer_id: Uuid,
+    currency: String,
+    due_date: i64,
+    issue_date: i64,
 }
 
 pub async fn handler(
@@ -28,27 +26,21 @@ pub async fn handler(
 ) -> Result<StatusCode, (StatusCode, String)> {
     query(
         "
-        INSERT INTO buyers (
-            address,
-            city,
-            country,
-            email,
-            name,
-            postal_code,
-            seller_id,
-            vat_number
+        INSERT INTO invoices (
+            buyer_id,
+            currency,
+            due_date,
+            issue_date,
+            seller_id
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, to_timestamp($3), to_timestamp($4), $5)
     ",
     )
-    .bind(&body.address)
-    .bind(&body.city)
-    .bind(&body.country)
-    .bind(&body.email)
-    .bind(&body.name)
-    .bind(&body.postal_code)
+    .bind(&body.buyer_id)
+    .bind(&body.currency)
+    .bind(&body.due_date)
+    .bind(&body.issue_date)
     .bind(&claims.sub)
-    .bind(&body.vat_number)
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;

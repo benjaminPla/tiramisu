@@ -12,3 +12,4 @@ serde = "1.0.219"
 sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "uuid"] }
 tokio = { version = "1.47.1", features = ["full"] }
 tower-http = { version = "0.6.6", features = ["compression-gzip", "cors", "fs", "limit", "normalize-path", "set-header", "set-status", "timeout"] }
+uuid = { version = "1.18.0", features = ["serde"] }

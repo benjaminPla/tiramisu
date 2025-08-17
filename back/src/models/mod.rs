@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{types::Uuid, FromRow};
+use sqlx::FromRow;
+use uuid::Uuid;
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct JWTClaims {
     pub exp: usize,
-    pub sub: i32,
+    pub sub: Uuid,
 }
 
 #[derive(FromRow)]
@@ -14,9 +15,8 @@ pub struct Seller {
     city: String,
     email: String,
     pub hashed_password: String,
-    pub id: i32,
+    pub id: Uuid,
     name: String,
     postal_code: String,
-    public_id: Uuid,
     vat_number: String,
 }

@@ -49,7 +49,7 @@ pub async fn handler(
     .bind(&body.name)
     .bind(&body.postal_code)
     .bind(&body.vat_number)
-    .bind(claims.sub)
+    .bind(&claims.sub)
     .execute(&app_state.db_pool)
     .await
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;

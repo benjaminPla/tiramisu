@@ -1,5 +1,6 @@
 mod authentication;
 mod buyers;
+mod invoices;
 mod others;
 mod sellers;
 
@@ -7,6 +8,7 @@ use crate::helpers::app_state::AppState;
 use authentication::AuthenticationRouter;
 use axum::{http::HeaderValue, Router};
 use buyers::BuyersRouter;
+use invoices::InvoicesRouter;
 use others::OthersRouter;
 use sellers::SellersRouter;
 use std::sync::Arc;
@@ -27,6 +29,7 @@ impl MainRouter {
                 Router::new()
                     .nest("/authentication", AuthenticationRouter::new())
                     .nest("/buyers", BuyersRouter::new(app_state.clone()))
+                    .nest("/invoices", InvoicesRouter::new(app_state.clone()))
                     .nest("/others", OthersRouter::new())
                     .nest("/sellers", SellersRouter::new(app_state.clone()))
                     .with_state(app_state.clone()),
