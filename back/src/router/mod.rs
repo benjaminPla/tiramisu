@@ -27,7 +27,10 @@ impl MainRouter {
             .nest(
                 "/api",
                 Router::new()
-                    .nest("/authentication", AuthenticationRouter::new())
+                    .nest(
+                        "/authentication",
+                        AuthenticationRouter::new(app_state.clone()),
+                    )
                     .nest("/buyers", BuyersRouter::new(app_state.clone()))
                     .nest("/invoices", InvoicesRouter::new(app_state.clone()))
                     .nest("/others", OthersRouter::new(app_state.clone()))
