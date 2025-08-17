@@ -10,7 +10,7 @@ CREATE TABLE currencies (
 );
 
 CREATE TABLE taxes (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     rate DECIMAL(4,2) NOT NULL,
     tax VARCHAR(20) NOT NULL
 );
@@ -23,10 +23,9 @@ CREATE TABLE sellers (
     country VARCHAR(60) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     hashed_password VARCHAR(128) NOT NULL,
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     name VARCHAR(255) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
-    public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     vat_number VARCHAR(20) NOT NULL
 );
 ALTER TABLE sellers 
@@ -38,11 +37,10 @@ CREATE TABLE buyers (
     city VARCHAR(60) NOT NULL,
     country VARCHAR(60) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     name VARCHAR(255) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
-    public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
-    seller_id INTEGER NOT NULL,
+    seller_id UUID NOT NULL,
     vat_number VARCHAR(20) NOT NULL
 );
 ALTER TABLE buyers 
@@ -56,10 +54,9 @@ ALTER TABLE buyers
 
 CREATE TABLE vendors (
     address VARCHAR(255) NOT NULL,
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     name VARCHAR(255) NOT NULL,
-    public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
-    seller_id INTEGER NOT NULL,
+    seller_id UUID NOT NULL,
     vat_number VARCHAR(20) NOT NULL
 );
 ALTER TABLE vendors 
@@ -70,8 +67,8 @@ ALTER TABLE vendors
 
 CREATE TABLE expense_categories (
     category VARCHAR(100) NOT NULL,
-    id SERIAL PRIMARY KEY,
-    seller_id INTEGER NOT NULL
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    seller_id UUID NOT NULL
 );
 ALTER TABLE expense_categories 
     ADD CONSTRAINT fk_expense_categories_seller 
@@ -80,14 +77,13 @@ ALTER TABLE expense_categories
     ADD CONSTRAINT uq_expense_categories_id_seller UNIQUE (id, seller_id);
 
 CREATE TABLE invoices (
-    buyer_id INTEGER NOT NULL,
+    buyer_id UUID NOT NULL,
     currency VARCHAR(3) NOT NULL,
     due_date TIMESTAMP NOT NULL,
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
     issue_date TIMESTAMP NOT NULL,
-    number INTEGER NOT NULL,
-    public_id UUID NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
-    seller_id INTEGER NOT NULL
+    number SERIAL NOT NULL,
+    seller_id UUID NOT NULL
 );
 ALTER TABLE invoices 
     ADD CONSTRAINT fk_invoices_buyer_seller
@@ -105,11 +101,11 @@ ALTER TABLE invoices
 
 CREATE TABLE invoice_details (
     description VARCHAR(255) NOT NULL,
-    id SERIAL PRIMARY KEY,
-    invoice_id INTEGER NOT NULL,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    invoice_id UUID NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    seller_id INTEGER NOT NULL,
-    tax_id INTEGER NOT NULL,
+    seller_id UUID NOT NULL,
+    tax_id UUID NOT NULL,
     unit_price DECIMAL(12,2) NOT NULL
 );
 ALTER TABLE invoice_details 
@@ -120,15 +116,15 @@ ALTER TABLE invoice_details
     FOREIGN KEY (tax_id) REFERENCES taxes(id);
 
 CREATE TABLE expenses (
-    category_id INTEGER NOT NULL,
+    category_id UUID NOT NULL,
     currency VARCHAR(3) NOT NULL,
     description VARCHAR(255) NOT NULL,
     file VARCHAR(500) NOT NULL,
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     issue_date TIMESTAMP NOT NULL,
     number VARCHAR(50) NOT NULL,
-    seller_id INTEGER NOT NULL,
-    vendor_id INTEGER NOT NULL
+    seller_id UUID NOT NULL,
+    vendor_id UUID NOT NULL
 );
 ALTER TABLE expenses 
     ADD CONSTRAINT fk_expenses_seller 
@@ -147,11 +143,11 @@ ALTER TABLE expenses
 
 CREATE TABLE expense_details (
     description VARCHAR(255) NOT NULL,
-    expense_id INTEGER NOT NULL,
-    id SERIAL PRIMARY KEY,
+    expense_id UUID NOT NULL,
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     quantity INTEGER NOT NULL CHECK (quantity > 0),
-    seller_id INTEGER NOT NULL,
-    tax_id INTEGER NOT NULL,
+    seller_id UUID NOT NULL,
+    tax_id UUID NOT NULL,
     unit_price DECIMAL(12,2) NOT NULL
 );
 ALTER TABLE expense_details 
@@ -160,108 +156,3 @@ ALTER TABLE expense_details
 ALTER TABLE expense_details 
     ADD CONSTRAINT fk_expense_details_tax 
     FOREIGN KEY (tax_id) REFERENCES taxes(id);
-
---  https://dbdiagram.io/d
---  Table sellers {
-  --  address varchar(255) [not null]
-  --  bank_account varchar(50) [not null]
-  --  city varchar(60) [not null]
-  --  country varchar(60) [not null, ref: > countries.country]
-  --  email varchar(255) [not null, unique]
-  --  hashed_password varchar(128) [not null]
-  --  id integer [primary key]
-  --  name varchar(255) [not null]
-  --  postal_code varchar(20) [not null]
-  --  public_id uuid [not null, unique]
-  --  vat_number varchar(20) [not null]
---  }
-
---  Table buyers {
-  --  address varchar(255) [not null]
-  --  city varchar(60) [not null]
-  --  country varchar(60) [not null, ref: > countries.country]
-  --  email varchar(255) [not null]
-  --  id integer [primary key]
-  --  name varchar(255) [not null]
-  --  postal_code varchar(20) [not null]
-  --  public_id uuid [not null, unique]
-  --  seller_id integer [not null, ref: > sellers.id]
-  --  vat_number varchar(20) [not null]
---  }
-
---  Table vendors {
-  --  address varchar(255) [not null]
-  --  id integer [primary key]
-  --  name varchar(255) [not null]
-  --  public_id uuid [not null, unique]
-  --  seller_id integer [not null, ref: > sellers.id]
-  --  vat_number varchar(20) [not null]
---  }
-
---  Table invoices {
-  --  buyer_id integer [not null, ref: > buyers.id]
-  --  currency varchar(3) [not null, ref: > currencies.currency]
-  --  due_date timestamp [not null]
-  --  id integer [primary key]
-  --  issue_date timestamp [not null]
-  --  number integer [not null]
-  --  public_id uuid [not null, unique]
-  --  seller_id integer [not null, ref: > sellers.id]
-  --  indexes {
-    --  (number, seller_id) [unique]
-  --  }
---  }
-
---  Table invoice_details {
-  --  description varchar(255) [not null]
-  --  id integer [primary key]
-  --  invoice_id integer [not null, ref: > invoices.id]
-  --  quantity integer [not null, default: 1]
-  --  tax_id integer [not null, ref: > taxes.id]
-  --  unit_price decimal(12,2) [not null]
---  }
-
---  Table expenses {
-  --  category_id integer [not null, ref: > expense_categories.id]
-  --  currency varchar(3) [not null, ref: > currencies.currency]
-  --  description varchar(255) [not null]
-  --  file varchar(500) [not null]
-  --  id integer [primary key]
-  --  issue_date timestamp [not null]
-  --  number varchar(50) [not null]
-  --  seller_id integer [not null, ref: > sellers.id]
-  --  vendor_id integer [not null, ref: > vendors.id]
---  }
-
---  Table expense_details {
-  --  description varchar(255) [not null]
-  --  expense_id integer [not null, ref: > expenses.id]
-  --  id integer [primary key]
-  --  quantity integer [not null, default: 1]
-  --  tax_id integer [not null, ref: > taxes.id]
-  --  unit_price decimal(12,2) [not null]
---  }
-
---  Table expense_categories {
-  --  category varchar [not null]
-  --  id integer [primary key]
-  --  seller_id integer [not null, ref: > sellers.id]
---  }
-
---  Table countries {
-  --  country varchar(60) [primary key]
---  }
-
---  Table currencies {
-  --  currency varchar(3) [primary key]
-  --  symbol varchar(5) [not null]
---  }
-
---  Table taxes {
-  --  id integer [primary key]
-  --  tax varchar(20) [not null]
-  --  rate decimal(4,2) [not null]
-  --  indexes {
-    --  (tax, rate) [unique]
-  --  }
---  }
