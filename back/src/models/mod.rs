@@ -2,6 +2,17 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
+#[derive(Deserialize)]
+pub struct InvoiceDetail {
+    description: String,
+    id: Uuid,
+    invoice_id: Uuid,
+    quantity: i32,
+    seller_id: Uuid,
+    tax_id: i32,
+    unit_price: f64,
+}
+
 #[derive(Clone, Deserialize, Serialize)]
 pub struct JWTClaims {
     pub exp: usize,
