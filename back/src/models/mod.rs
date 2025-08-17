@@ -34,3 +34,10 @@ pub struct Seller {
     postal_code: String,
     vat_number: String,
 }
+
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct Tax {
+    id: i32,
+    rate: f64,
+    tax: String,
+}
