@@ -1,7 +1,9 @@
+mod authentication;
 mod others;
 mod sellers;
 
 use crate::helpers::app_state::AppState;
+use authentication::AuthenticationRouter;
 use axum::{http::HeaderValue, Router};
 use others::OthersRouter;
 use sellers::SellersRouter;
@@ -21,6 +23,7 @@ impl MainRouter {
             .nest(
                 "/api",
                 Router::new()
+                    .nest("/authentication", AuthenticationRouter::new())
                     .nest("/others", OthersRouter::new())
                     .nest("/sellers", SellersRouter::new(app_state.clone()))
                     .with_state(app_state.clone()),
