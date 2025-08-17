@@ -1,0 +1,4 @@
+- [ ] fetch once countries
+- [ ] update handle errors
+- [ ] add show message logic
+- [ ] redirect to login when 401
