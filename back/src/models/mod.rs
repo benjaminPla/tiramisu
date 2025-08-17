@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
 
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct Country(String);
+
 #[derive(Deserialize)]
 pub struct InvoiceDetail {
     description: String,

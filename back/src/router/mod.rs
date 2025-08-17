@@ -30,7 +30,7 @@ impl MainRouter {
                     .nest("/authentication", AuthenticationRouter::new())
                     .nest("/buyers", BuyersRouter::new(app_state.clone()))
                     .nest("/invoices", InvoicesRouter::new(app_state.clone()))
-                    .nest("/others", OthersRouter::new())
+                    .nest("/others", OthersRouter::new(app_state.clone()))
                     .nest("/sellers", SellersRouter::new(app_state.clone()))
                     .with_state(app_state.clone()),
             )

@@ -16,6 +16,7 @@ pub struct Res {
     address: String,
     bank_account: String,
     city: String,
+    country: String,
     email: String,
     id: Uuid,
     name: String,
