@@ -11,7 +11,7 @@ CREATE TABLE currencies (
 
 CREATE TABLE taxes (
     id SERIAL PRIMARY KEY,
-    rate DECIMAL(4,2) NOT NULL,
+    rate DOUBLE PRECISION NOT NULL,
     tax VARCHAR(20) NOT NULL
 );
 CREATE UNIQUE INDEX idx_taxes_tax_rate ON taxes (tax, rate);
@@ -106,7 +106,7 @@ CREATE TABLE invoice_details (
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     seller_id UUID NOT NULL,
     tax_id INTEGER NOT NULL,
-    unit_price DECIMAL(12,2) NOT NULL
+    unit_price DOUBLE PRECISION NOT NULL
 );
 ALTER TABLE invoice_details 
     ADD CONSTRAINT fk_invoice_details_invoice 
@@ -148,7 +148,7 @@ CREATE TABLE expense_details (
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     seller_id UUID NOT NULL,
     tax_id INTEGER NOT NULL,
-    unit_price DECIMAL(12,2) NOT NULL
+    unit_price DOUBLE PRECISION NOT NULL
 );
 ALTER TABLE expense_details 
     ADD CONSTRAINT fk_expense_details_expense 
