@@ -3,6 +3,19 @@ use sqlx::FromRow;
 use uuid::Uuid;
 
 #[derive(Deserialize, FromRow, Serialize)]
+pub struct Buyer {
+    address: String,
+    city: String,
+    country: String,
+    email: String,
+    id: Uuid,
+    name: String,
+    postal_code: String,
+    seller_id: Uuid,
+    vat_number: String,
+}
+
+#[derive(Deserialize, FromRow, Serialize)]
 pub struct Country(String);
 
 #[derive(Deserialize)]

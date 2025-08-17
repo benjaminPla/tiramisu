@@ -1,9 +1,9 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use axum::{extract::State, http::StatusCode, Json};
-use sqlx::{query_as};
-use std::sync::Arc;
 use crate::models::Country;
+use axum::{extract::State, http::StatusCode, Json};
+use sqlx::query_as;
+use std::sync::Arc;
 
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
