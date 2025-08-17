@@ -1,6 +1,6 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use crate::models::{JWTClaims};
+use crate::models::JWTClaims;
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
@@ -16,7 +16,7 @@ pub struct BodyDetails {
     description: String,
     quantity: i32,
     tax_id: i32,
-    unit_price: f64
+    unit_price: f64,
 }
 
 #[derive(Deserialize)]
