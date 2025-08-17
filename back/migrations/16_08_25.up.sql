@@ -99,3 +99,8 @@ INSERT INTO currencies (currency, symbol) VALUES
 ('UYU', '$'),    -- Uruguay
 ('VEF', 'Bs'),   -- Venezuela
 ('XCD', '$');    -- Dominica, Saint Lucia, Saint Vincent
+
+INSERT INTO taxes (rate, tax) VALUES
+(21.00, 'IVA 21%'),
+(11.00, 'IVA 11%'),
+(0.00,  'Exempt');

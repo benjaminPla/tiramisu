@@ -10,7 +10,7 @@ CREATE TABLE currencies (
 );
 
 CREATE TABLE taxes (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     rate DECIMAL(4,2) NOT NULL,
     tax VARCHAR(20) NOT NULL
 );
@@ -105,7 +105,7 @@ CREATE TABLE invoice_details (
     invoice_id UUID NOT NULL,
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     seller_id UUID NOT NULL,
-    tax_id UUID NOT NULL,
+    tax_id INTEGER NOT NULL,
     unit_price DECIMAL(12,2) NOT NULL
 );
 ALTER TABLE invoice_details 
@@ -147,7 +147,7 @@ CREATE TABLE expense_details (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     quantity INTEGER NOT NULL CHECK (quantity > 0),
     seller_id UUID NOT NULL,
-    tax_id UUID NOT NULL,
+    tax_id INTEGER NOT NULL,
     unit_price DECIMAL(12,2) NOT NULL
 );
 ALTER TABLE expense_details 
