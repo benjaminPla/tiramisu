@@ -1,6 +1,6 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use crate::models::Seller;
+use crate::models::{JWTClaims, Seller};
 use argon2::{
     password_hash::{PasswordHash, PasswordVerifier},
     Argon2,
@@ -21,12 +21,6 @@ pub struct Body {
 #[derive(Serialize)]
 pub struct Res {
     token: String,
-}
-
-#[derive(Serialize)]
-pub struct JWTClaims {
-    sub: String,
-    exp: usize,
 }
 
 pub async fn handler(
@@ -52,7 +46,7 @@ pub async fn handler(
         .map_err(|_| error!(StatusCode::UNAUTHORIZED, "Invalid email or password"))?;
 
     let claims = JWTClaims {
-        sub: seller.public_id.to_string(),
+        sub: seller.id,
         exp: (Utc::now() + Duration::hours(1)).timestamp() as usize,
     };
 

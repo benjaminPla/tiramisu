@@ -4,7 +4,7 @@ use sqlx::{types::Uuid, FromRow};
 #[derive(Clone, Deserialize, Serialize)]
 pub struct JWTClaims {
     pub exp: usize,
-    pub sub: String,
+    pub sub: i32,
 }
 
 #[derive(FromRow)]
@@ -14,9 +14,9 @@ pub struct Seller {
     city: String,
     email: String,
     pub hashed_password: String,
-    id: i32,
+    pub id: i32,
     name: String,
     postal_code: String,
-    pub public_id: Uuid,
+    public_id: Uuid,
     vat_number: String,
 }
