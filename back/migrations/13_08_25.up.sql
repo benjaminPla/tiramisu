@@ -79,9 +79,9 @@ ALTER TABLE expense_categories
 CREATE TABLE invoices (
     buyer_id UUID NOT NULL,
     currency VARCHAR(3) NOT NULL,
-    due_date TIMESTAMP NOT NULL,
+    due_date DATE NOT NULL,
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4() UNIQUE,
-    issue_date TIMESTAMP NOT NULL,
+    issue_date DATE NOT NULL,
     number SERIAL NOT NULL,
     seller_id UUID NOT NULL
 );
@@ -121,7 +121,7 @@ CREATE TABLE expenses (
     description VARCHAR(255) NOT NULL,
     file VARCHAR(500) NOT NULL,
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    issue_date TIMESTAMP NOT NULL,
+    issue_date DATE NOT NULL,
     number VARCHAR(50) NOT NULL,
     seller_id UUID NOT NULL,
     vendor_id UUID NOT NULL
