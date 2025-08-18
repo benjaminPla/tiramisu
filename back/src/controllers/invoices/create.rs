@@ -1,15 +1,25 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use crate::models::JWTClaims;
+use crate::models::{Invoice, InvoiceDetail, JWTClaims};
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
     response::Json,
 };
-use serde::Deserialize;
-use sqlx::query_scalar;
+use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
+use sqlx::query_as;
 use std::sync::Arc;
 use uuid::Uuid;
+
+#[derive(Deserialize)]
+pub struct Body {
+    buyer_id: Uuid,
+    currency: String,
+    details: Vec<BodyDetails>,
+    due_date: NaiveDate,
+    issue_date: NaiveDate,
+}
 
 #[derive(Deserialize)]
 pub struct BodyDetails {
@@ -19,20 +29,18 @@ pub struct BodyDetails {
     unit_price: f64,
 }
 
-#[derive(Deserialize)]
-pub struct Body {
-    buyer_id: Uuid,
-    currency: String,
-    details: Vec<BodyDetails>,
-    due_date: i64,
-    issue_date: i64,
+#[derive(Serialize)]
+pub struct Res {
+    invoice: Invoice,
+    invoice_details: Vec<InvoiceDetail>
 }
+
 
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
     Extension(claims): Extension<JWTClaims>,
     Json(body): Json<Body>,
-) -> Result<StatusCode, (StatusCode, String)> {
+) -> Result<Json<Res>, (StatusCode, String)> {
     if body.details.is_empty() {
         return Err((
             StatusCode::BAD_REQUEST,
@@ -46,11 +54,11 @@ pub async fn handler(
         .await
         .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    let invoice_id: Uuid = query_scalar(
+    let invoice: Invoice = query_as(
         "
         INSERT INTO invoices (buyer_id, currency, due_date, issue_date, seller_id)
-        VALUES ($1, $2, to_timestamp($3), to_timestamp($4), $5)
-        RETURNING id
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
         ",
     )
     .bind(&body.buyer_id)
@@ -62,28 +70,33 @@ pub async fn handler(
     .await
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
+    let mut invoice_details = Vec::with_capacity(body.details.len());
+
     for detail in &body.details {
-        sqlx::query(
+        let invoice_detail: InvoiceDetail = query_as(
             "
             INSERT INTO invoice_details
             (description, invoice_id, quantity, seller_id, tax_id, unit_price)
             VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING *
             ",
         )
         .bind(&detail.description)
-        .bind(&invoice_id)
+        .bind(&invoice.id)
         .bind(&detail.quantity)
         .bind(&claims.sub)
         .bind(&detail.tax_id)
         .bind(&detail.unit_price)
-        .execute(&mut *tx)
+        .fetch_one(&mut *tx)
         .await
         .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
+
+        invoice_details.push(invoice_detail);
     }
 
     tx.commit()
         .await
         .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    Ok(StatusCode::CREATED)
+    Ok(Json(Res{invoice, invoice_details}))
 }

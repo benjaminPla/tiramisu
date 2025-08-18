@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use uuid::Uuid;
@@ -24,7 +25,18 @@ pub struct Currency {
     symbol: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct Invoice {
+    buyer_id: Uuid,
+    currency: String,
+    due_date: NaiveDate,
+    pub id: Uuid,
+    issue_date: NaiveDate,
+    number: i32,
+    seller_id: Uuid,
+}
+
+#[derive(Deserialize, FromRow, Serialize)]
 pub struct InvoiceDetail {
     description: String,
     id: Uuid,
