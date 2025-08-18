@@ -18,6 +18,12 @@ pub struct Buyer {
 #[derive(Deserialize, FromRow, Serialize)]
 pub struct Country(String);
 
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct Currency {
+    currency: String,
+    symbol: String,
+}
+
 #[derive(Deserialize)]
 pub struct InvoiceDetail {
     description: String,
