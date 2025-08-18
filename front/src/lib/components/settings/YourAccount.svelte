@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { env } from '$env/dynamic/public';
 	import { onMount } from 'svelte';
-	import { Seller } from '$lib/types';
+	import type { Seller } from '$lib/types';
 
 	let countries: string[] = [];
 	let form: Seller = {
@@ -18,7 +18,7 @@
 
 	onMount(async () => {
 		try {
-			const sellerRes = await fetch(`${env.PUBLIC_API_URL}/sellers/me`, {
+			const sellerRes = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
 				headers: {
 					'Content-Type': 'application/json',
 					Authorization: localStorage.getItem('token') || ''

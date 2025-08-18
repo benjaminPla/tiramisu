@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Buyer } from '$lib/types';
+	import type { Buyer } from '$lib/types';
 	import { env } from '$env/dynamic/public';
 	import { onMount } from 'svelte';
 

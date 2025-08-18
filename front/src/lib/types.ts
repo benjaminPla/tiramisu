@@ -8,6 +8,11 @@ export type Buyer = {
 	vat_number: string;
 };
 
+export type Currency = {
+	currency: string;
+	symbol: string;
+};
+
 export type InvoiceDetail = {
 	description: string;
 	quantity: number;
@@ -32,4 +37,10 @@ export type Seller = {
 	name: string;
 	postal_code: string;
 	vat_number: string;
+};
+
+export type Tax = {
+	id: number;
+	rate: number;
+	tax: string;
 };
