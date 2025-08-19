@@ -1,0 +1,122 @@
+:root {
+	/* Colors */
+	--black: #000000;
+	--blue: #3483fa;
+	--gray-dark: #707070;
+	--gray-light: #e0e0e0;
+	--gray-medium: #c0c0c0;
+	--green: #00a650;
+	--white: #ffffff;
+
+	/* Fonts */
+	--font-primary: courier,  sans-serif;
+	--font-normal-size: 14px;
+
+	/* Borders */
+	--border-radius-small: 2px;
+	--border-width: 2px;
+
+	/* Spacing */
+	--spacing-small: 0.4rem;
+	--spacing-base: 0.8rem;
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+html,
+body {
+	height: 100%;
+	width: 100%;
+	font-family: var(--font-primary);
+	font-size: var(--font-normal-size);
+	background: var(--gray-light);
+	color: var(--black);
+    padding: 0 5vw;
+}
+
+/* Links */
+a {
+	color: var(--blue);
+	text-decoration: none;
+}
+a:hover {
+	text-decoration: underline;
+}
+
+/* Headings */
+h1,
+h2,
+h3 {
+	font-weight: bold;
+	color: var(--black);
+	margin-bottom: var(--spacing-small);
+}
+
+/* Old-school 3D Buttons */
+button,
+.button {
+	background: var(--gray-light);
+	border: var(--border-width) solid var(--gray-medium);
+	border-top-color: var(--white);
+	border-left-color: var(--white);
+	border-radius: var(--border-radius-small);
+	padding: var(--spacing-small) var(--spacing-base);
+	font-family: var(--font-primary);
+	font-size: var(--font-normal-size);
+	cursor: pointer;
+	box-shadow: inset -1px -1px 0 var(--gray-dark), inset 1px 1px 0 var(--white);
+	transition: all 0.1s ease-in;
+}
+
+button:active,
+.button:active {
+	border-top-color: var(--gray-dark);
+	border-left-color: var(--gray-dark);
+	border-bottom-color: var(--white);
+	border-right-color: var(--white);
+	box-shadow: inset 1px 1px 0 var(--gray-dark), inset -1px -1px 0 var(--white);
+	background: var(--gray-medium);
+}
+
+/* Special variants */
+button.green {
+	background: var(--green);
+	color: var(--white);
+	border: var(--border-width) solid var(--gray-dark);
+}
+
+button.blue {
+	background: var(--blue);
+	color: var(--white);
+	border: var(--border-width) solid var(--gray-dark);
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-small);
+}
+
+input,
+select,
+textarea {
+	background: var(--white);
+	border: var(--border-width) solid var(--gray-medium);
+	border-top-color: var(--white);
+	border-left-color: var(--white);
+	padding: var(--spacing-small);
+	font-family: var(--font-primary);
+	font-size: var(--font-normal-size);
+	box-shadow: inset -1px -1px 0 var(--gray-dark), inset 1px 1px 0 var(--white);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border: var(--border-width) solid var(--blue);
+}

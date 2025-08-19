@@ -21,7 +21,7 @@
 	let form: Invoice = {
 		buyer_id: '',
 		currency: '',
-		details: [],
+		details: [{ description: '', unit_price: 0, quantity: 1, tax_id: '' }],
 		issue_date: '',
 		due_date: ''
 	};
@@ -86,9 +86,12 @@
 		});
 		if (!invoiceRes.ok) throw new Error('Create failed');
 		const invoice = await invoiceRes.json();
-		console.log({ invoice });
 
 		if (!seller || !buyer) return;
+
+		const currencySymbol = currencies.find(
+			(currency) => currency.currency === form.currency
+		).symbol;
 
 		const doc = new jsPDF();
 		currentY = MARGIN_Y;
@@ -154,25 +157,25 @@
 			totalTax += lineTax;
 
 			doc.text(item.description, colDescX, currentY);
-			doc.text(`${item.unit_price} ${form.currency}`, colUnitPriceX, currentY);
+			doc.text(`${currencySymbol} ${item.unit_price}`, colUnitPriceX, currentY);
 			doc.text(String(item.quantity), colQtyX, currentY);
 			doc.text(taxLabel, colTaxX, currentY);
-			doc.text(`${total.toFixed(2)} ${form.currency}`, colTotalX, currentY, { align: 'right' });
+			doc.text(`${currencySymbol} ${total.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
 			currentY += JUMP_LINE * 2;
 		}
 
 		// Totals
 		doc.text('SUBTOTAL', colQtyX, currentY);
-		doc.text(`${subtotal.toFixed(2)} ${form.currency}`, colTotalX, currentY, { align: 'right' });
+		doc.text(`${currencySymbol} ${subtotal.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
 		currentY += JUMP_LINE;
 
 		doc.text('TAX', colQtyX, currentY);
-		doc.text(`${totalTax.toFixed(2)} ${form.currency}`, colTotalX, currentY, { align: 'right' });
+		doc.text(`${currencySymbol} ${totalTax.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
 		currentY += JUMP_LINE;
 
 		doc.setFont(FONT_FAMILY, 'bold');
 		doc.text('TOTAL', colQtyX, currentY);
-		doc.text(`${(subtotal + totalTax).toFixed(2)} ${form.currency}`, colTotalX, currentY, {
+		doc.text(`${currencySymbol} ${(subtotal + totalTax).toFixed(2)}`, colTotalX, currentY, {
 			align: 'right'
 		});
 		currentY += JUMP_LINE * 2;
@@ -199,7 +202,6 @@
 		on:change={(e) => {
 			const id = e.target.value;
 			buyer = buyers.find((b) => b.id === id) || null;
-			console.log({ buyer, e: e.target });
 		}}
 	>
 		<option value="" disabled>Select buyer</option>
@@ -239,7 +241,7 @@
 					<option value={tax.id}>{tax.tax}</option>
 				{/each}
 			</select>
-			<input type="number" placeholder="Quantity" bind:value={item.quantity} />
+			<input type="number" placeholder="Quantity" bind:value={item.quantity} min="1" step="1" />
 		</div>
 	{/each}
 	<button type="button" on:click={addDetail}>+ Add Item</button>
