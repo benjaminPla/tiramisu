@@ -6,9 +6,10 @@ use argon2::{
     Argon2,
 };
 use axum::{extract::State, http::StatusCode, response::Json};
+use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use sqlx::query_as;
 use std::sync::Arc;
 
@@ -18,15 +19,11 @@ pub struct Body {
     password: String,
 }
 
-#[derive(Serialize)]
-pub struct Res {
-    token: String,
-}
-
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
+    jar: CookieJar,
     Json(body): Json<Body>,
-) -> Result<Json<Res>, (StatusCode, String)> {
+) -> Result<(CookieJar, StatusCode), (StatusCode, String)> {
     let seller: Seller = query_as("SELECT * FROM sellers WHERE email = $1")
         .bind(&body.email)
         .fetch_one(&app_state.db_pool)
@@ -57,5 +54,15 @@ pub async fn handler(
     )
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    Ok(Json(Res { token }))
+    let cookie = Cookie::build(("token", token.clone()))
+        .http_only(true)
+        .max_age(cookie::time::Duration::hours(1))
+        .path("/")
+        .same_site(SameSite::Lax)
+        .secure(true)
+        .build();
+
+    let updated_jar = jar.add(cookie);
+
+    Ok((updated_jar, StatusCode::OK))
 }

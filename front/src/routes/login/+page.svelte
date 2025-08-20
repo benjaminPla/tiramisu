@@ -12,13 +12,12 @@
 		loading = true;
 		try {
 			const res = await fetch(`${env.PUBLIC_API_URL}/authentication/authenticate`, {
-				method: 'POST',
+				body: JSON.stringify(form),
+				credentials: 'include',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(form)
+				method: 'POST'
 			});
 			if (!res.ok) throw new Error('Update failed');
-			const data = await res.json();
-			localStorage.setItem('token', data.token);
 			goto('/dashboard');
 		} catch (e) {
 			console.error(e);

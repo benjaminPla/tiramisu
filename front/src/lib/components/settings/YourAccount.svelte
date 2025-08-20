@@ -19,10 +19,8 @@
 	onMount(async () => {
 		try {
 			const sellerRes = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: localStorage.getItem('token') || ''
-				}
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' }
 			});
 			if (!sellerRes.ok) throw new Error('Failed to load seller info');
 			const sellerData = await sellerRes.json();
@@ -44,12 +42,10 @@
 	async function updateSeller() {
 		try {
 			const res = await fetch(`${env.PUBLIC_API_URL}/sellers/update`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: localStorage.getItem('token') || ''
-				},
-				body: JSON.stringify(form)
+				body: JSON.stringify(form),
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				method: 'PUT'
 			});
 			if (!res.ok) throw new Error('Update failed');
 			alert('Seller updated successfully!');
@@ -59,24 +55,27 @@
 	}
 </script>
 
-<h2>Your account</h2>
-{#if loading}
-	<p>Loading...</p>
-{:else}
-	<form on:submit|preventDefault={updateSeller}>
-		<input bind:value={form.address} placeholder="Address" />
-		<input bind:value={form.bank_account} placeholder="Bank Account" />
-		<input bind:value={form.city} placeholder="City" />
-		<select bind:value={form.country}>
-			<option value="" disabled>Select country</option>
-			{#each countries as country}
-				<option value={country}>{country}</option>
-			{/each}
-		</select>
-		<input bind:value={form.email} type="email" placeholder="Email" />
-		<input bind:value={form.name} placeholder="Name" />
-		<input bind:value={form.postal_code} placeholder="Postal Code" />
-		<input bind:value={form.vat_number} placeholder="VAT Number" />
-		<button type="submit">Update</button>
-	</form>
-{/if}
+<details>
+	<summary class="cursor-pointer font-semibold">Your Account</summary>
+
+	{#if loading}
+		<p>Loading...</p>
+	{:else}
+		<form on:submit|preventDefault={updateSeller}>
+			<input bind:value={form.address} placeholder="Address" />
+			<input bind:value={form.bank_account} placeholder="Bank Account" />
+			<input bind:value={form.city} placeholder="City" />
+			<select bind:value={form.country}>
+				<option value="" disabled>Select country</option>
+				{#each countries as country}
+					<option value={country}>{country}</option>
+				{/each}
+			</select>
+			<input bind:value={form.email} type="email" placeholder="Email" />
+			<input bind:value={form.name} placeholder="Name" />
+			<input bind:value={form.postal_code} placeholder="Postal Code" />
+			<input bind:value={form.vat_number} placeholder="VAT Number" />
+			<button type="submit">Update</button>
+		</form>
+	{/if}
+</details>

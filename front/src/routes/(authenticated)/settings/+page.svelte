@@ -3,5 +3,6 @@
 	import YourAccount from '$lib/components/settings/YourAccount.svelte';
 </script>
 
-<YourAccount />
+<h1>Settings</h1>
 <Buyers />
+<YourAccount />

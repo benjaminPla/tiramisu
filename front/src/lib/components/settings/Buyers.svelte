@@ -31,12 +31,10 @@
 	async function createBuyer() {
 		try {
 			const res = await fetch(`${env.PUBLIC_API_URL}/buyers/create`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: localStorage.getItem('token')
-				},
-				body: JSON.stringify(form)
+				body: JSON.stringify(form),
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				method: 'POST'
 			});
 			if (!res.ok) throw new Error('Create failed');
 			alert('Buyer created successfully!');
@@ -46,23 +44,26 @@
 	}
 </script>
 
-<h2>Create buyer</h2>
-{#if loading}
-	<p>Loading...</p>
-{:else}
-	<form on:submit|preventDefault={createBuyer}>
-		<input bind:value={form.address} placeholder="Address" />
-		<input bind:value={form.city} placeholder="City" />
-		<select bind:value={form.country}>
-			<option value="" disabled>Select country</option>
-			{#each countries as country}
-				<option value={country}>{country}</option>
-			{/each}
-		</select>
-		<input bind:value={form.email} type="email" placeholder="Email" />
-		<input bind:value={form.name} placeholder="Name" />
-		<input bind:value={form.postal_code} placeholder="Postal Code" />
-		<input bind:value={form.vat_number} placeholder="VAT Number" />
-		<button type="submit">Create</button>
-	</form>
-{/if}
+<details>
+	<summary class="cursor-pointer font-semibold">Create buyer</summary>
+
+	{#if loading}
+		<p>Loading...</p>
+	{:else}
+		<form on:submit|preventDefault={createBuyer}>
+			<input bind:value={form.address} placeholder="Address" />
+			<input bind:value={form.city} placeholder="City" />
+			<select bind:value={form.country}>
+				<option value="" disabled>Select country</option>
+				{#each countries as country}
+					<option value={country}>{country}</option>
+				{/each}
+			</select>
+			<input bind:value={form.email} type="email" placeholder="Email" />
+			<input bind:value={form.name} placeholder="Name" />
+			<input bind:value={form.postal_code} placeholder="Postal Code" />
+			<input bind:value={form.vat_number} placeholder="VAT Number" />
+			<button type="submit">Create</button>
+		</form>
+	{/if}
+</details>

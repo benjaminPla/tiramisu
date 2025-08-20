@@ -32,9 +32,8 @@ pub struct BodyDetails {
 #[derive(Serialize)]
 pub struct Res {
     invoice: Invoice,
-    invoice_details: Vec<InvoiceDetail>
+    invoice_details: Vec<InvoiceDetail>,
 }
-
 
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
@@ -98,5 +97,8 @@ pub async fn handler(
         .await
         .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    Ok(Json(Res{invoice, invoice_details}))
+    Ok(Json(Res {
+        invoice,
+        invoice_details,
+    }))
 }

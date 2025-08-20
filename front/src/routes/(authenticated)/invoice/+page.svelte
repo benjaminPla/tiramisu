@@ -29,10 +29,8 @@
 	let taxes: Tax[] = [];
 
 	onMount(async () => {
-		const token = localStorage.getItem('token');
-
 		const buyersRes = await fetch(`${env.PUBLIC_API_URL}/buyers/get_all`, {
-			headers: { Authorization: token }
+			credentials: 'include'
 		});
 		const buyersData = await buyersRes.json();
 		buyers = buyersData;
@@ -42,7 +40,7 @@
 		currencies = currenciesData;
 
 		const sellerRes = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
-			headers: { Authorization: token }
+			credentials: 'include'
 		});
 		const sellerData = await sellerRes.json();
 		seller = sellerData;
@@ -52,7 +50,7 @@
 		taxes = taxesData;
 	});
 
-	function addDetail() {
+	function addInvoiceDetail() {
 		form.details = [
 			...form.details,
 			{
@@ -62,6 +60,10 @@
 				tax_id: ''
 			}
 		];
+	}
+
+	function removeInvoiceDetails(i: number) {
+		form.details = form.details.filter((_, index) => index !== i);
 	}
 
 	function addLine(doc: jsPDF, text: string, bold = false, align: 'left' | 'right' = 'left') {
@@ -78,10 +80,8 @@
 	async function downloadPdf() {
 		const invoiceRes = await fetch(`${env.PUBLIC_API_URL}/invoices/create`, {
 			method: 'POST',
-			headers: {
-				Authorization: localStorage.getItem('token'),
-				'Content-Type': 'application/json'
-			},
+			credentials: 'include',
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(form)
 		});
 		if (!invoiceRes.ok) throw new Error('Create failed');
@@ -242,9 +242,10 @@
 				{/each}
 			</select>
 			<input type="number" placeholder="Quantity" bind:value={item.quantity} min="1" step="1" />
+			<button type="button" on:click={removeInvoiceDetails(i)}>- Remove Detail</button>
 		</div>
 	{/each}
-	<button type="button" on:click={addDetail}>+ Add Item</button>
+	<button type="button" on:click={addInvoiceDetail}>+ Add Detail</button>
 
 	<button type="submit">Generate Invoice PDF</button>
 </form>

@@ -46,12 +46,12 @@ impl MainRouter {
 
     fn cors() -> CorsLayer {
         CorsLayer::new()
+            .allow_headers(Any)
+            .allow_methods(Any)
             .allow_origin(AllowOrigin::list([
                 "https://memelibre.com".parse::<HeaderValue>().unwrap(),
                 "http://memelibre.com".parse::<HeaderValue>().unwrap(),
                 "localhost:3000".parse::<HeaderValue>().unwrap(),
             ]))
-            .allow_methods(Any)
-            .allow_headers(Any)
     }
 }
