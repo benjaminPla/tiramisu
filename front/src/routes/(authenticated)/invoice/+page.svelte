@@ -50,7 +50,10 @@
 		taxes = taxesData;
 	});
 
-	function addInvoiceDetail() {
+	const handleBuyerChange = (element) =>
+		(buyer = buyers.find((b) => b.id === element.target.id) || null);
+
+	const addInvoiceDetail = () => {
 		form.details = [
 			...form.details,
 			{
@@ -60,13 +63,13 @@
 				tax_id: ''
 			}
 		];
-	}
+	};
 
-	function removeInvoiceDetails(i: number) {
+	const removeInvoiceDetails = (i: number) => {
 		form.details = form.details.filter((_, index) => index !== i);
-	}
+	};
 
-	function addLine(doc: jsPDF, text: string, bold = false, align: 'left' | 'right' = 'left') {
+	const addLine = (doc: jsPDF, text: string, bold = false, align: 'left' | 'right' = 'left') => {
 		if (bold) {
 			doc.setFont(FONT_FAMILY, 'bold');
 		} else {
@@ -75,9 +78,9 @@
 		const x = align === 'left' ? MARGIN_X : PAGE_WIDTH - MARGIN_X;
 		doc.text(text, x, currentY, { align });
 		currentY += JUMP_LINE;
-	}
+	};
 
-	async function downloadPdf() {
+	const handleSubmit = async () => {
 		const invoiceRes = await fetch(`${env.PUBLIC_API_URL}/invoices/create`, {
 			method: 'POST',
 			credentials: 'include',
@@ -190,62 +193,63 @@
 		);
 
 		doc.save('invoice.pdf');
-	}
+	};
 </script>
 
 <h1>Create Invoice</h1>
 
-<form on:submit|preventDefault={downloadPdf}>
-	<label>Buyer</label>
-	<select
-		bind:value={form.buyer_id}
-		on:change={(e) => {
-			const id = e.target.value;
-			buyer = buyers.find((b) => b.id === id) || null;
-		}}
-	>
+<form on:submit|preventDefault={handleSubmit}>
+	<label for="buyer">Buyer:</label>
+	<select bind:value={form.buyer_id} id="buyer" on:change={handleBuyerChange}>
 		<option value="" disabled>Select buyer</option>
 		{#each buyers as buyer}
 			<option value={buyer.id}>{buyer.name} ({buyer.email})</option>
 		{/each}
 	</select>
-
-	<label>Issue Date</label>
-	<input type="date" bind:value={form.issue_date} />
-
-	<label>Due Date</label>
-	<input type="date" bind:value={form.due_date} />
-
-	<label>Currency</label>
-	<select bind:value={form.currency}>
+	<label for="issue_date">Issue date:</label>
+	<input bind:value={form.issue_date} id="issue_date" type="date" />
+	<label for="due_date">Due date:</label>
+	<input bind:value={form.due_date} id="due_date" type="date" />
+	<label for="currency">Currency:</label>
+	<select bind:value={form.currency} for="currency">
 		<option value="" disabled>Select tax</option>
 		{#each currencies as currency}
 			<option value={currency.currency}>{currency.symbol} {currency.currency}</option>
 		{/each}
 	</select>
-
 	<h2>Invoice Details</h2>
 	{#each form.details as item, i}
 		<div class="detail-row">
-			<input placeholder="Description" bind:value={item.description} />
+			<label for="description">Description:</label>
+			<input bind:value={item.description} id="description" placeholder="Description" />
+			<label for="unit_price">Unit price:</label>
 			<input
-				type="number"
-				placeholder="Unit Price"
 				bind:value={item.unit_price}
+				id="unit_price"
 				min="0.01"
+				placeholder="Unit Price"
 				step="0.01"
+				type="number"
 			/>
-			<select bind:value={item.tax_id}>
+			<label for="tax_id">Tax:</label>
+			<select bind:value={item.tax_id} id="tax_id">
 				<option value="" disabled>Select tax</option>
 				{#each taxes as tax}
 					<option value={tax.id}>{tax.tax}</option>
 				{/each}
 			</select>
-			<input type="number" placeholder="Quantity" bind:value={item.quantity} min="1" step="1" />
+			<label for="quantity">Quantity:</label>
+			<input
+				bind:value={item.quantity}
+				id="quantity"
+				min="1"
+				placeholder="Quantity"
+				step="1"
+				type="number"
+			/>
 			<button type="button" on:click={removeInvoiceDetails(i)}>- Remove Detail</button>
 		</div>
 	{/each}
 	<button type="button" on:click={addInvoiceDetail}>+ Add Detail</button>
-
 	<button type="submit">Generate Invoice PDF</button>
 </form>

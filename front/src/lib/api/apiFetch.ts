@@ -12,14 +12,15 @@ export const apiFetch = async (url: string, options: RequestInit = {}, withAuth 
 	});
 
 	if (!res.ok) {
+		const text = (await res.text()) || 'Something went wrong';
 		switch (res.status) {
 			case 401:
-				showNotification('Session expired, please log in', 'error');
+				showNotification(text, 'error');
 				goto('/login');
-				throw new Error('Unauthorized');
+				return null;
 			default:
-				const text = await res.text();
-				throw new Error(text || 'API request failed');
+				showNotification(text, 'error');
+				return null;
 		}
 	}
 
