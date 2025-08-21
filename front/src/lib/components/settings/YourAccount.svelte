@@ -1,73 +1,31 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
+	import { countries } from '$lib/stores';
+	import { loadSeller, seller, updateSeller } from '$lib/stores';
 	import { onMount } from 'svelte';
 	import type { Seller } from '$lib/types';
 
-	let countries: string[] = [];
-	let form: Seller = {
-		address: '',
-		bank_account: '',
-		city: '',
-		country: '',
-		email: '',
-		name: '',
-		postal_code: '',
-		vat_number: ''
-	};
+	let form: Seller = null;
 	let loading = true;
 
 	onMount(async () => {
-		try {
-			const sellerRes = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' }
-			});
-			if (!sellerRes.ok) throw new Error('Failed to load seller info');
-			const sellerData = await sellerRes.json();
-			form = sellerData;
-
-			const countriesRes = await fetch(`${env.PUBLIC_API_URL}/others/countries`, {
-				headers: { 'Content-Type': 'application/json' }
-			});
-			if (!countriesRes.ok) throw new Error('Failed to load countries');
-			const countriesData = await countriesRes.json();
-			countries = countriesData;
-		} catch (e) {
-			console.error(e);
-		} finally {
-			loading = false;
-		}
+		await loadSeller();
+		$seller && (form = { ...$seller });
+		loading = false;
 	});
-
-	async function updateSeller() {
-		try {
-			const res = await fetch(`${env.PUBLIC_API_URL}/sellers/update`, {
-				body: JSON.stringify(form),
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-				method: 'PUT'
-			});
-			if (!res.ok) throw new Error('Update failed');
-			alert('Seller updated successfully!');
-		} catch (e) {
-			console.error(e);
-		}
-	}
 </script>
 
 <details>
-	<summary class="cursor-pointer font-semibold">Your Account</summary>
-
+	<summary>Your Account</summary>
 	{#if loading}
 		<p>Loading...</p>
-	{:else}
-		<form on:submit|preventDefault={updateSeller}>
+	{:else if form}
+		<form on:submit|preventDefault={() => updateSeller(form)}>
 			<input bind:value={form.address} placeholder="Address" />
 			<input bind:value={form.bank_account} placeholder="Bank Account" />
 			<input bind:value={form.city} placeholder="City" />
 			<select bind:value={form.country}>
 				<option value="" disabled>Select country</option>
-				{#each countries as country}
+				{#each $countries as country}
 					<option value={country}>{country}</option>
 				{/each}
 			</select>

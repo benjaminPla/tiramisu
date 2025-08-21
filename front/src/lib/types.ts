@@ -8,6 +8,8 @@ export type Buyer = {
 	vat_number: string;
 };
 
+export type Country = string;
+
 export type Currency = {
 	currency: string;
 	symbol: string;
