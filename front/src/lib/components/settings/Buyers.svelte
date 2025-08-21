@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { Buyer } from '$lib/types';
+	import { createBuyer } from '$lib/api/buyers/create';
 	import { env } from '$env/dynamic/public';
 	import { onMount } from 'svelte';
+	import type { Buyer } from '$lib/types';
 
 	let countries: string[] = [];
 	let form: Buyer = {
@@ -15,6 +16,19 @@
 	};
 	let loading = true;
 
+	const handleSubmit = async () => {
+		await createBuyer(form);
+		form = {
+			address: '',
+			city: '',
+			country: '',
+			email: '',
+			name: '',
+			postal_code: '',
+			vat_number: ''
+		};
+	};
+
 	onMount(async () => {
 		try {
 			const countriesRes = await fetch(`${env.PUBLIC_API_URL}/others/countries`);
@@ -27,30 +41,14 @@
 			loading = false;
 		}
 	});
-
-	async function createBuyer() {
-		try {
-			const res = await fetch(`${env.PUBLIC_API_URL}/buyers/create`, {
-				body: JSON.stringify(form),
-				credentials: 'include',
-				headers: { 'Content-Type': 'application/json' },
-				method: 'POST'
-			});
-			if (!res.ok) throw new Error('Create failed');
-			alert('Buyer created successfully!');
-		} catch (e) {
-			console.error(e);
-		}
-	}
 </script>
 
 <details>
-	<summary class="cursor-pointer font-semibold">Create buyer</summary>
-
+	<summary>Create buyer</summary>
 	{#if loading}
 		<p>Loading...</p>
 	{:else}
-		<form on:submit|preventDefault={createBuyer}>
+		<form on:submit|preventDefault={handleSubmit}>
 			<input bind:value={form.address} placeholder="Address" />
 			<input bind:value={form.city} placeholder="City" />
 			<select bind:value={form.country}>

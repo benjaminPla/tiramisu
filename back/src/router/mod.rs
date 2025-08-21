@@ -51,7 +51,7 @@ impl MainRouter {
             .allow_origin(AllowOrigin::list([
                 "https://memelibre.com".parse::<HeaderValue>().unwrap(),
                 "http://memelibre.com".parse::<HeaderValue>().unwrap(),
-                "localhost:3000".parse::<HeaderValue>().unwrap(),
+                "localhost:5173".parse::<HeaderValue>().unwrap(),
             ]))
     }
 }

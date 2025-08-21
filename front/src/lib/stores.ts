@@ -1,64 +1,38 @@
-import { env } from '$env/dynamic/public';
-import { writable } from 'svelte/store';
 import { readable } from 'svelte/store';
-import type { Country, Currency, Seller } from './types';
-
-const apiUrl = env.PUBLIC_API_URL;
+import type { Country, Currency, Notification, NotificationType, Seller } from './types';
+import { apiFetch } from '$lib/api/apiFetch';
+import { writable } from 'svelte/store';
 
 // @ts-ignore
 export const countries = readable<Country[]>([], async (set) => {
-	try {
-		const res = await fetch(`${apiUrl}/others/countries`, {
-			headers: { 'Content-Type': 'application/json' }
-		});
-		if (!res.ok) throw new Error('Failed to load countries');
-		const data: Country[] = await res.json();
-		set(data);
-	} catch (error) {
-		console.error(error);
-	}
+	const data = await apiFetch('/others/countries', {}, false);
+	set(data);
 });
 
 // @ts-ignore
 export const currencies = readable<Currency[]>([], async (set) => {
-	try {
-		const res = await fetch(`${apiUrl}/others/currencies`, {
-			headers: { 'Content-Type': 'application/json' }
-		});
-		if (!res.ok) throw new Error('Failed to load currencies');
-		const data: Currency[] = await res.json();
-		set(data);
-	} catch (error) {
-		console.error(error);
-	}
+	const data = await apiFetch('/others/currencies', {}, false);
+	set(data);
 });
 
-const _seller = writable<Seller | null>(null);
+export const notification = writable<Notification | null>(null);
+let notificationTimeout: number | null = null;
+export const showNotification = (message: string | null, type: NotificationType) => {
+	if (notificationTimeout) clearTimeout(notificationTimeout);
+	notification.set({ message: message || 'Internal server error', type, isHided: false });
+	notificationTimeout = setTimeout(() => notification.set(null), 3000);
+};
+
+const _seller = writable<Seller>();
 export const seller = { subscribe: _seller.subscribe };
 export async function loadSeller() {
-	try {
-		const res = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
-			credentials: 'include',
-			headers: { 'Content-Type': 'application/json' }
-		});
-		if (!res.ok) throw new Error('Failed to load seller');
-		const data: Seller = await res.json();
-		_seller.set(data);
-	} catch (error) {
-		console.error(error);
-	}
+	const data = await apiFetch('/authentication/me');
+	_seller.set(data);
 }
 export async function updateSeller(form: Seller) {
-	try {
-		const res = await fetch(`${env.PUBLIC_API_URL}/sellers/update`, {
-			body: JSON.stringify(form),
-			credentials: 'include',
-			headers: { 'Content-Type': 'application/json' },
-			method: 'PUT'
-		});
-		if (!res.ok) throw new Error('Update failed');
-		_seller.set(form);
-	} catch (error) {
-		console.error(error);
-	}
+	const data = await apiFetch('/sellers/update', {
+		body: JSON.stringify(form),
+		method: 'PUT'
+	});
+	_seller.set(data);
 }

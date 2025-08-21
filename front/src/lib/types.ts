@@ -30,6 +30,14 @@ export type Invoice = {
 	due_date: Date;
 };
 
+export type Notification = {
+	isHided: boolean;
+	message: string;
+	type: NotificationType;
+};
+
+export type NotificationType = 'error' | 'info' | 'success';
+
 export type Seller = {
 	address: string;
 	bank_account: string;
