@@ -1,0 +1,7 @@
+.invoice-detail {
+  background: var(--gray-mediumm);
+  align-items: center;
+  display: grid;
+  gap: var(--spacing-small);
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+}

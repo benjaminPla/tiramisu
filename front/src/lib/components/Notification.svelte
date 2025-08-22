@@ -3,7 +3,7 @@
 </script>
 
 {#if $notification}
-	<div class={`notification-${$notification.type}`}>
+	<div class={`notification notification-${$notification.type}`}>
 		<p>{$notification.message}</p>
 	</div>
 {/if}

@@ -54,3 +54,10 @@ export type Tax = {
 	rate: number;
 	tax: string;
 };
+
+export type Vendor = {
+	address: string;
+	name: string;
+	seller_id: string;
+	vat_number: string;
+};

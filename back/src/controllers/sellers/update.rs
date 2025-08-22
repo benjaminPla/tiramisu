@@ -6,8 +6,8 @@ use axum::{
     http::StatusCode,
     response::Json,
 };
-use serde::Deserialize;
-use sqlx::query;
+use serde::{Deserialize, Serialize};
+use sqlx::{query_as, FromRow};
 use std::sync::Arc;
 
 #[derive(Deserialize)]
@@ -22,12 +22,24 @@ pub struct Body {
     vat_number: String,
 }
 
+#[derive(FromRow, Serialize)]
+pub struct Res {
+    address: String,
+    bank_account: String,
+    city: String,
+    country: String,
+    email: String,
+    name: String,
+    postal_code: String,
+    vat_number: String,
+}
+
 pub async fn handler(
     State(app_state): State<Arc<AppState>>,
     Extension(claims): Extension<JWTClaims>,
     Json(body): Json<Body>,
-) -> Result<StatusCode, (StatusCode, String)> {
-    let db_result = query(
+) -> Result<Json<Res>, (StatusCode, String)> {
+    let updated_seller: Option<Res> = query_as(
         "
         UPDATE sellers SET
             address = $1,
@@ -39,6 +51,7 @@ pub async fn handler(
             postal_code = $7,
             vat_number = $8
         WHERE id = $9
+        RETURNING id, address, bank_account, city, country, email, name, postal_code, vat_number
     ",
     )
     .bind(&body.address)
@@ -50,13 +63,12 @@ pub async fn handler(
     .bind(&body.postal_code)
     .bind(&body.vat_number)
     .bind(&claims.sub)
-    .execute(&app_state.db_pool)
+    .fetch_optional(&app_state.db_pool)
     .await
     .map_err(|e| error!(StatusCode::INTERNAL_SERVER_ERROR, err: e))?;
 
-    if db_result.rows_affected() == 0 {
-        return Err(error!(StatusCode::NOT_FOUND));
+    match updated_seller {
+        Some(seller) => Ok(Json(seller)),
+        None => Err(error!(StatusCode::NOT_FOUND)),
     }
-
-    Ok(StatusCode::OK)
 }

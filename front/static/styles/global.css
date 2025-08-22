@@ -6,6 +6,7 @@
 	--gray-light: #e0e0e0;
 	--gray-medium: #c0c0c0;
 	--green: #00a650;
+    --red: #d32f2f;
 	--white: #ffffff;
 
 	/* Fonts */
@@ -27,6 +28,10 @@
 	padding: 0;
 }
 
+html {
+    padding: 0 5vw;
+}
+
 html,
 body {
 	height: 100%;
@@ -35,7 +40,6 @@ body {
 	font-size: var(--font-normal-size);
 	background: var(--gray-light);
 	color: var(--black);
-    padding: 0 5vw;
 }
 
 /* Links */
@@ -78,6 +82,11 @@ button:hover {
 	box-shadow: inset -1px -1px 0 var(--gray-dark), inset 1px 1px 0 var(--white);
 }
 
+.button-danger:hover {
+	background: var(--red);
+}
+
+/* Form */
 form {
 	display: flex;
 	flex-direction: column;
@@ -103,4 +112,9 @@ select:focus,
 textarea:focus {
 	outline: none;
 	border: var(--border-width) solid var(--blue);
+}
+
+/* Summary */
+summary {
+    cursor: pointer;
 }

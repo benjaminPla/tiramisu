@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
 	import type { Buyer, Currency, Invoice, Seller, Tax } from '$lib/types';
+	import { env } from '$env/dynamic/public';
 	import { jsPDF } from 'jspdf';
 	import { onMount } from 'svelte';
+	import { showNotification } from '$lib/stores';
 
 	const FONT_FAMILY = 'courier';
 	const FONT_SIZE_HEADER = 20;
@@ -193,11 +194,14 @@
 		);
 
 		doc.save('invoice.pdf');
+		showNotification('Create invoice success', 'success');
 	};
 </script>
 
+<svelte:head>
+	<link rel="stylesheet" href="/styles/invoice.css" />
+</svelte:head>
 <h1>Create Invoice</h1>
-
 <form on:submit|preventDefault={handleSubmit}>
 	<label for="buyer">Buyer:</label>
 	<select bind:value={form.buyer_id} id="buyer" on:change={handleBuyerChange}>
@@ -217,12 +221,14 @@
 			<option value={currency.currency}>{currency.symbol} {currency.currency}</option>
 		{/each}
 	</select>
-	<h2>Invoice Details</h2>
-	{#each form.details as item, i}
-		<div class="detail-row">
-			<label for="description">Description:</label>
+	<div class="invoice-detail">
+		<p>Description:</p>
+		<p>Unit price:</p>
+		<p>Tax:</p>
+		<p>Quantity:</p>
+		<p>Action:</p>
+		{#each form.details as item, i}
 			<input bind:value={item.description} id="description" placeholder="Description" />
-			<label for="unit_price">Unit price:</label>
 			<input
 				bind:value={item.unit_price}
 				id="unit_price"
@@ -231,14 +237,12 @@
 				step="0.01"
 				type="number"
 			/>
-			<label for="tax_id">Tax:</label>
 			<select bind:value={item.tax_id} id="tax_id">
 				<option value="" disabled>Select tax</option>
 				{#each taxes as tax}
 					<option value={tax.id}>{tax.tax}</option>
 				{/each}
 			</select>
-			<label for="quantity">Quantity:</label>
 			<input
 				bind:value={item.quantity}
 				id="quantity"
@@ -247,9 +251,10 @@
 				step="1"
 				type="number"
 			/>
-			<button type="button" on:click={removeInvoiceDetails(i)}>- Remove Detail</button>
-		</div>
-	{/each}
+			<button class="button-danger" type="button" on:click={() => removeInvoiceDetails(i)}>-</button
+			>
+		{/each}
+	</div>
 	<button type="button" on:click={addInvoiceDetail}>+ Add Detail</button>
 	<button type="submit">Generate Invoice PDF</button>
 </form>

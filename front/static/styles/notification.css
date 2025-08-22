@@ -1,0 +1,19 @@
+.notification {
+  bottom: 0;
+  left: 0;
+  padding: var(--spacing-small);
+  position: absolute;
+  width: 100vw;
+}
+
+.notification-error {
+  background: var(--red);
+}
+
+.notification-info {
+  background: var(--gray-medium);
+}
+
+.notification-success {
+  background: var(--green);
+}

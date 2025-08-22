@@ -1,6 +1,6 @@
+import { apiFetch } from '$lib/api/apiFetch';
 import { readable } from 'svelte/store';
 import type { Country, Currency, Notification, NotificationType, Seller } from './types';
-import { apiFetch } from '$lib/api/apiFetch';
 import { writable } from 'svelte/store';
 
 // @ts-ignore
@@ -35,4 +35,5 @@ export async function updateSeller(form: Seller) {
 		method: 'PUT'
 	});
 	_seller.set(data);
+	showNotification('Update success', 'success');
 }

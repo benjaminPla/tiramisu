@@ -49,18 +49,25 @@
 		<p>Loading...</p>
 	{:else}
 		<form on:submit|preventDefault={handleSubmit}>
-			<input bind:value={form.address} placeholder="Address" />
-			<input bind:value={form.city} placeholder="City" />
-			<select bind:value={form.country}>
+			<label for="address-buyer">Address:</label>
+			<input id="address-buyer" bind:value={form.address} placeholder="Address" />
+			<label for="city-buyer">City:</label>
+			<input id="city-buyer" bind:value={form.city} placeholder="City" />
+			<label for="country-buyer">Country:</label>
+			<select id="country-buyer" bind:value={form.country}>
 				<option value="" disabled>Select country</option>
 				{#each countries as country}
 					<option value={country}>{country}</option>
 				{/each}
 			</select>
-			<input bind:value={form.email} type="email" placeholder="Email" />
-			<input bind:value={form.name} placeholder="Name" />
-			<input bind:value={form.postal_code} placeholder="Postal Code" />
-			<input bind:value={form.vat_number} placeholder="VAT Number" />
+			<label for="email-buyer">Email:</label>
+			<input id="email-buyer" bind:value={form.email} type="email" placeholder="Email" />
+			<label for="name-buyer">Name:</label>
+			<input id="name-buyer" bind:value={form.name} placeholder="Name" />
+			<label for="postal_code-buyer">Postal Code:</label>
+			<input id="postal_code-buyer" bind:value={form.postal_code} placeholder="Postal Code" />
+			<label for="vat_number-buyer">VAT Number:</label>
+			<input id="vat_number-buyer" bind:value={form.vat_number} placeholder="VAT Number" />
 			<button type="submit">Create</button>
 		</form>
 	{/if}
