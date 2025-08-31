@@ -41,7 +41,7 @@ pub struct InvoiceDetail {
     description: String,
     id: Uuid,
     invoice_id: Uuid,
-    quantity: i32,
+    quantity: f64,
     seller_id: Uuid,
     tax_id: i32,
     unit_price: f64,
@@ -67,7 +67,7 @@ pub struct Seller {
 }
 
 #[derive(Deserialize, FromRow, Serialize)]
-pub struct SellerNote {
+pub struct SellerInvoiceNote {
     id: Uuid,
     note: String,
     seller_id: Uuid,

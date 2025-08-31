@@ -116,7 +116,7 @@ CREATE TABLE invoice_details (
     description VARCHAR(255) NOT NULL,
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     invoice_id UUID NOT NULL,
-    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    quantity DOUBLE PRECISION NOT NULL CHECK (quantity > 0),
     seller_id UUID NOT NULL,
     tax_id INTEGER NOT NULL,
     unit_price DOUBLE PRECISION NOT NULL

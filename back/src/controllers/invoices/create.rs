@@ -1,6 +1,6 @@
 use crate::error;
 use crate::helpers::app_state::AppState;
-use crate::models::{Invoice, InvoiceDetail, JWTClaims, SellerNote};
+use crate::models::{Invoice, InvoiceDetail, JWTClaims, SellerInvoiceNote};
 use axum::{
     extract::{Extension, State},
     http::StatusCode,
@@ -25,7 +25,7 @@ pub struct Body {
 #[derive(Deserialize)]
 pub struct BodyDetails {
     description: String,
-    quantity: i32,
+    quantity: f64,
     tax_id: i32,
     unit_price: f64,
 }
@@ -34,7 +34,7 @@ pub struct BodyDetails {
 pub struct Res {
     invoice: Invoice,
     invoice_details: Vec<InvoiceDetail>,
-    invoice_notes: Vec<SellerNote>,
+    invoice_notes: Vec<SellerInvoiceNote>,
 }
 
 pub async fn handler(
@@ -96,14 +96,15 @@ pub async fn handler(
 
     let mut invoice_notes = Vec::with_capacity(body.notes.len());
     for note_id in &body.notes {
-        let seller_note: SellerNote = query_as("SELECT * FROM seller_invoice_notes WHERE id = $1;")
-            .bind(&note_id)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|e| match e {
-                SqlxError::RowNotFound => error!(StatusCode::NOT_FOUND, "Note not found"),
-                _ => error!(StatusCode::INTERNAL_SERVER_ERROR, err: e),
-            })?;
+        let seller_note: SellerInvoiceNote =
+            query_as("SELECT * FROM seller_invoice_notes WHERE id = $1;")
+                .bind(&note_id)
+                .fetch_one(&mut *tx)
+                .await
+                .map_err(|e| match e {
+                    SqlxError::RowNotFound => error!(StatusCode::NOT_FOUND, "Note not found"),
+                    _ => error!(StatusCode::INTERNAL_SERVER_ERROR, err: e),
+                })?;
 
         query(
             "

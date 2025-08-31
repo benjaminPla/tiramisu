@@ -1,9 +1,9 @@
-use crate::controllers::sellers::{create_invoice_note, update};
+use crate::controllers::sellers::{create_invoice_notes, get_all_invoice_notes, update};
 use crate::helpers::app_state::AppState;
 use crate::middlewares::with_auth;
 use axum::{
     middleware::from_fn_with_state,
-    routing::{post, put},
+    routing::{get, post, put},
     Router,
 };
 use std::sync::Arc;
@@ -14,8 +14,13 @@ impl SellersRouter {
     pub fn new(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
         Router::new()
             .route(
-                "/create_invoice_note",
-                post(create_invoice_note::handler)
+                "/invoice_notes/create",
+                post(create_invoice_notes::handler)
+                    .layer(from_fn_with_state(app_state.clone(), with_auth::handler)),
+            )
+            .route(
+                "/invoice_notes/get_all",
+                get(get_all_invoice_notes::handler)
                     .layer(from_fn_with_state(app_state.clone(), with_auth::handler)),
             )
             .route(
