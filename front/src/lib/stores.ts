@@ -4,14 +4,14 @@ import type { Country, Currency, Notification, NotificationType, Seller } from '
 import { writable } from 'svelte/store';
 
 // @ts-ignore
-export const countries = readable<Country[]>([], async (set) => {
-	const data = await apiFetch('/others/countries', {}, false);
+export const countries = readable<Country[] | null>([], async (set) => {
+	const data = await apiFetch<Country[]>('/others/countries', {}, false);
 	set(data);
 });
 
 // @ts-ignore
-export const currencies = readable<Currency[]>([], async (set) => {
-	const data = await apiFetch('/others/currencies', {}, false);
+export const currencies = readable<Currency[] | null>([], async (set) => {
+	const data = await apiFetch<Currency[]>('/others/currencies', {}, false);
 	set(data);
 });
 
@@ -20,20 +20,31 @@ let notificationTimeout: number | null = null;
 export const showNotification = (message: string | null, type: NotificationType) => {
 	if (notificationTimeout) clearTimeout(notificationTimeout);
 	notification.set({ message: message || 'Internal server error', type, isHided: false });
-	notificationTimeout = setTimeout(() => notification.set(null), 3000);
+	if (type !== 'loading') notificationTimeout = setTimeout(() => notification.set(null), 3000);
 };
 
-const _seller = writable<Seller>();
+export const loading = writable<boolean>(false);
+loading.subscribe((isLoading) => {
+	isLoading
+		? showNotification('Loading...', 'loading')
+		: notification.update((n) => (n?.type === 'loading' ? null : n));
+});
+
+const _seller = writable<Seller | null>();
 export const seller = { subscribe: _seller.subscribe };
 export async function loadSeller() {
-	const data = await apiFetch('/authentication/me');
+	const data = await apiFetch<Seller>('/authentication/me');
 	_seller.set(data);
 }
 export async function updateSeller(form: Seller) {
-	const data = await apiFetch('/sellers/update', {
-		body: JSON.stringify(form),
-		method: 'PUT'
-	});
+	const data = await apiFetch<Seller>(
+		'/sellers/update',
+		{
+			body: JSON.stringify(form),
+			method: 'PUT'
+		},
+		true,
+		true
+	);
 	_seller.set(data);
-	showNotification('Update success', 'success');
 }

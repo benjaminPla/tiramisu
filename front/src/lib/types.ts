@@ -1,3 +1,8 @@
+export type AuthenticateForm = {
+	email: string;
+	password: string;
+};
+
 export type Buyer = {
 	address: string;
 	city: string;
@@ -36,7 +41,7 @@ export type Notification = {
 	type: NotificationType;
 };
 
-export type NotificationType = 'error' | 'info' | 'success';
+export type NotificationType = 'error' | 'info' | 'loading' | 'success';
 
 export type Seller = {
 	address: string;
@@ -55,7 +60,7 @@ export type Tax = {
 	tax: string;
 };
 
-export type Vendor = {
+export type VendorForm = {
 	address: string;
 	name: string;
 	seller_id: string;

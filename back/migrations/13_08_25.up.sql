@@ -32,6 +32,16 @@ ALTER TABLE sellers
     ADD CONSTRAINT fk_sellers_country 
     FOREIGN KEY (country) REFERENCES countries(country);
 
+CREATE TABLE seller_notes (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    note VARCHAR(500) NOT NULL,
+    seller_id UUID NOT NULL
+);
+ALTER TABLE seller_notes
+    ADD CONSTRAINT fk_seller_notes_seller
+    FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE;
+
+
 CREATE TABLE buyers (
     address VARCHAR(255) NOT NULL,
     city VARCHAR(60) NOT NULL,
@@ -114,6 +124,19 @@ ALTER TABLE invoice_details
 ALTER TABLE invoice_details 
     ADD CONSTRAINT fk_invoice_details_tax 
     FOREIGN KEY (tax_id) REFERENCES taxes(id);
+
+CREATE TABLE invoice_notes (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    invoice_id UUID NOT NULL,
+    note_id UUID NOT NULL
+);
+ALTER TABLE invoice_notes
+    ADD CONSTRAINT fk_invoice_note_invoice
+    FOREIGN KEY (invoice_id, seller_id) REFERENCES invoices(id, seller_id) ON DELETE CASCADE;
+ALTER TABLE invoice_notes
+    ADD CONSTRAINT fk_invoice_note_note
+    FOREIGN KEY (note_id, seller_id) REFERENCES seller_notes(id, seller_id);
+
 
 CREATE TABLE expenses (
     category_id UUID NOT NULL,

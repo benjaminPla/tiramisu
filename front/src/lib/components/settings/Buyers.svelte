@@ -1,11 +1,9 @@
 <script lang="ts">
+	import { countries } from '$lib/stores';
 	import { createBuyer } from '$lib/api/buyers/create';
-	import { env } from '$env/dynamic/public';
-	import { onMount } from 'svelte';
 	import type { Buyer } from '$lib/types';
 
-	let countries: string[] = [];
-	let form: Buyer = {
+	const EMPTY_FORM = {
 		address: '',
 		city: '',
 		country: '',
@@ -14,33 +12,13 @@
 		postal_code: '',
 		vat_number: ''
 	};
-	let loading = true;
+	let form: Buyer = EMPTY_FORM;
+	let loading = false;
 
 	const handleSubmit = async () => {
-		await createBuyer(form);
-		form = {
-			address: '',
-			city: '',
-			country: '',
-			email: '',
-			name: '',
-			postal_code: '',
-			vat_number: ''
-		};
+		await createBuyer(form).finally((loading = false));
+		form = EMPTY_FORM;
 	};
-
-	onMount(async () => {
-		try {
-			const countriesRes = await fetch(`${env.PUBLIC_API_URL}/others/countries`);
-			if (!countriesRes.ok) throw new Error('Failed to load countries');
-			const countriesData = await countriesRes.json();
-			countries = countriesData;
-		} catch (e) {
-			console.error(e);
-		} finally {
-			loading = false;
-		}
-	});
 </script>
 
 <details>
@@ -56,7 +34,7 @@
 			<label for="country-buyer">Country:</label>
 			<select id="country-buyer" bind:value={form.country}>
 				<option value="" disabled>Select country</option>
-				{#each countries as country}
+				{#each $countries as country}
 					<option value={country}>{country}</option>
 				{/each}
 			</select>

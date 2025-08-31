@@ -8,9 +8,8 @@
 	let loading = true;
 
 	onMount(async () => {
-		await loadSeller();
+		await loadSeller().finally((loading = false));
 		$seller && (form = { ...$seller });
-		loading = false;
 	});
 </script>
 

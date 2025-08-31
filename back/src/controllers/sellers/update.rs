@@ -51,7 +51,7 @@ pub async fn handler(
             postal_code = $7,
             vat_number = $8
         WHERE id = $9
-        RETURNING id, address, bank_account, city, country, email, name, postal_code, vat_number
+        RETURNING address, bank_account, city, country, email, name, postal_code, vat_number
     ",
     )
     .bind(&body.address)
