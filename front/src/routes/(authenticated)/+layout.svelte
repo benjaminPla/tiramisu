@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Menu from '$lib/components/Menu.svelte';
-	import Notification from '$lib/components/Notification.svelte';
+	import Notifications from '$lib/components/Notifications.svelte';
 </script>
 
-<Notification />
+<Notifications />
 <Menu />
 <slot />

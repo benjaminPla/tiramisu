@@ -3,7 +3,11 @@ export type AuthenticateForm = {
 	password: string;
 };
 
-export type Buyer = {
+export type Buyer = BuyerForm & {
+	id: string;
+};
+
+export type BuyerForm = {
 	address: string;
 	city: string;
 	country: string;
@@ -20,6 +24,12 @@ export type Currency = {
 	symbol: string;
 };
 
+export type InvoiceCreateResponse = InvoiceDetail & {
+	invoice_details: InvoiceDetail[];
+	invoice: { id: string; number: number; seller_id: string };
+	invoice_notes: SellerInvoiceNote[];
+};
+
 export type InvoiceDetail = {
 	description: string;
 	quantity: number;
@@ -27,23 +37,28 @@ export type InvoiceDetail = {
 	unit_price: number;
 };
 
-export type Invoice = {
+export type InvoiceForm = {
 	buyer_id: string;
 	currency: string;
 	details: InvoiceDetail[];
-	issue_date: Date;
-	due_date: Date;
+	due_date: string;
+	issue_date: string;
+    notes: string[]
 };
 
 export type Notification = {
-	isHided: boolean;
+	id: number;
 	message: string;
 	type: NotificationType;
 };
 
 export type NotificationType = 'error' | 'info' | 'loading' | 'success';
 
-export type Seller = {
+export type Seller = SellerForm & {
+	id: string;
+};
+
+export type SellerForm = {
 	address: string;
 	bank_account: string;
 	city: string;
@@ -52,6 +67,12 @@ export type Seller = {
 	name: string;
 	postal_code: string;
 	vat_number: string;
+};
+
+export type SellerInvoiceNote = {
+	id: string;
+	note: string;
+	seller_id: string;
 };
 
 export type Tax = {

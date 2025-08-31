@@ -1,12 +1,12 @@
 import { env } from '$env/dynamic/public';
-import type { AuthenticateForm } from '$lib/types';
+import type { SellerForm } from '$lib/types';
 
 const apiUrl = env.PUBLIC_API_URL;
 
-export const authenticate = async (form: AuthenticateForm) =>
-	await fetch(`${apiUrl}/authentication/authenticate`, {
+export const sellerUpdate = async (form: SellerForm) =>
+	await fetch(`${apiUrl}/sellers/update`, {
 		body: JSON.stringify(form),
 		credentials: 'include',
 		headers: { 'Content-Type': 'application/json' },
-		method: 'POST'
+		method: 'PUT'
 	});

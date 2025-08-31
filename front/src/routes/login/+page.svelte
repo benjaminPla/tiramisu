@@ -1,16 +1,30 @@
 <script lang="ts">
 	import { authenticate } from '$lib/api/authentication/authenticate';
-	import Notification from '$lib/components/Notification.svelte';
+	import { goto } from '$app/navigation';
+	import { notifications } from '$lib/stores';
 	import type { AuthenticateForm } from '$lib/types';
+	import Notifications from '$lib/components/Notifications.svelte';
 
 	let form: AuthenticateForm = { email: '', password: '' };
 
 	const handleSubmit = async () => {
-		await authenticate(form);
+		notifications.loading(true);
+		try {
+			const response = await authenticate(form);
+			if (!response.ok) {
+				const text = await response.text();
+				throw new Error(text || 'Unauthorized');
+			}
+			goto('/dashboard');
+		} catch (error: unknown) {
+			notifications.error(error);
+		} finally {
+			notifications.loading(false);
+		}
 	};
 </script>
 
-<Notification />
+<Notifications />
 <h1>Login</h1>
 <form on:submit|preventDefault={handleSubmit}>
 	<label for="email_authenticate">Email:</label>

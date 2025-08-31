@@ -1,50 +1,90 @@
-import { apiFetch } from '$lib/api/apiFetch';
+import { env } from '$env/dynamic/public';
 import { readable } from 'svelte/store';
-import type { Country, Currency, Notification, NotificationType, Seller } from './types';
-import { writable } from 'svelte/store';
+import type { Country, Currency, Notification, Tax } from './types';
+import { writable, type Writable } from 'svelte/store';
+
+const apiUrl = env.PUBLIC_API_URL;
 
 // @ts-ignore
-export const countries = readable<Country[] | null>([], async (set) => {
-	const data = await apiFetch<Country[]>('/others/countries', {}, false);
-	set(data);
+export const countries = readable<Country[]>([], async (set) => {
+	try {
+		const res = await fetch(`${apiUrl}/others/countries`);
+		if (!res.ok) throw new Error('Error getting countries');
+		const data = await res.json();
+		set(data);
+	} catch (error: unknown) {
+		notifications.error(error);
+	}
 });
 
 // @ts-ignore
-export const currencies = readable<Currency[] | null>([], async (set) => {
-	const data = await apiFetch<Currency[]>('/others/currencies', {}, false);
-	set(data);
+export const currencies = readable<Currency[]>([], async (set) => {
+	try {
+		const res = await fetch(`${apiUrl}/others/currencies`);
+		if (!res.ok) throw new Error('Error getting currencies');
+		const data = await res.json();
+		set(data);
+	} catch (error: unknown) {
+		notifications.error(error);
+	}
 });
 
-export const notification = writable<Notification | null>(null);
-let notificationTimeout: number | null = null;
-export const showNotification = (message: string | null, type: NotificationType) => {
-	if (notificationTimeout) clearTimeout(notificationTimeout);
-	notification.set({ message: message || 'Internal server error', type, isHided: false });
-	if (type !== 'loading') notificationTimeout = setTimeout(() => notification.set(null), 3000);
-};
+export class NotificationStore {
+	private store: Writable<Notification[]>;
+	private counter = 0;
+	private loadingId: number | null = null;
+	subscribe: Writable<Notification[]>['subscribe'];
+	constructor() {
+		this.store = writable<Notification[]>([]);
+		this.subscribe = this.store.subscribe;
+	}
+	add(message: string, type: Notification['type']) {
+		const id = ++this.counter;
+		const notification: Notification = { id, message, type };
+		this.store.update((all) => [...all, notification]);
+		if (type !== 'loading') {
+			setTimeout(() => this.remove(id), 3000);
+		}
+		return id;
+	}
+	error(e: unknown) {
+		let message = 'Internal server error';
+		if (typeof e === 'string') {
+			message = e;
+		} else if (e && typeof e === 'object' && 'message' in e) {
+			message = (e as { message?: string }).message ?? message;
+		}
+		this.add(message, 'error');
+	}
+	loading(isLoading: boolean) {
+		if (isLoading) {
+			if (this.loadingId === null) {
+				this.loadingId = this.add('Loading...', 'loading');
+			}
+		} else {
+			if (this.loadingId !== null) {
+				this.remove(this.loadingId);
+				this.loadingId = null;
+			}
+		}
+	}
+	remove(id: number) {
+		this.store.update((all) => all.filter((n) => n.id !== id));
+		if (this.loadingId === id) {
+			this.loadingId = null;
+		}
+	}
+}
+export const notifications = new NotificationStore();
 
-export const loading = writable<boolean>(false);
-loading.subscribe((isLoading) => {
-	isLoading
-		? showNotification('Loading...', 'loading')
-		: notification.update((n) => (n?.type === 'loading' ? null : n));
+// @ts-ignore
+export const taxes = readable<Tax[]>([], async (set) => {
+	try {
+		const res = await fetch(`${apiUrl}/others/taxes`);
+		if (!res.ok) throw new Error('Error getting taxes');
+		const data = await res.json();
+		set(data);
+	} catch (error: unknown) {
+		notifications.error(error);
+	}
 });
-
-const _seller = writable<Seller | null>();
-export const seller = { subscribe: _seller.subscribe };
-export async function loadSeller() {
-	const data = await apiFetch<Seller>('/authentication/me');
-	_seller.set(data);
-}
-export async function updateSeller(form: Seller) {
-	const data = await apiFetch<Seller>(
-		'/sellers/update',
-		{
-			body: JSON.stringify(form),
-			method: 'PUT'
-		},
-		true,
-		true
-	);
-	_seller.set(data);
-}

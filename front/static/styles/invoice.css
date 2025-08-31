@@ -1,7 +1,12 @@
-.invoice-detail {
-  background: var(--gray-mediumm);
+.invoice-details {
   align-items: center;
   display: grid;
   gap: var(--spacing-small);
   grid-template-columns: 2fr 1fr 1fr 1fr auto;
+}
+
+.invoice-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-small);
 }

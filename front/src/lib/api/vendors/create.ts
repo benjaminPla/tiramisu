@@ -1,8 +1,12 @@
-import { apiFetch } from '$lib/api/apiFetch';
-import type { Vendor } from '../../types';
+import { env } from '$env/dynamic/public';
+import type { VendorForm } from '$lib/types';
 
-export const createVendor = async (form: Vendor) =>
-	await apiFetch('/vendors/create', {
+const apiUrl = env.PUBLIC_API_URL;
+
+export const vendorsCreate = async (form: VendorForm) =>
+	await fetch(`${apiUrl}/vendors/create`, {
 		body: JSON.stringify(form),
+		credentials: 'include',
+		headers: { 'Content-Type': 'application/json' },
 		method: 'POST'
 	});

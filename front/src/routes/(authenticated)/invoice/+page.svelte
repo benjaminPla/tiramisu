@@ -1,9 +1,21 @@
 <script lang="ts">
-	import type { Buyer, Currency, Invoice, Seller, Tax } from '$lib/types';
-	import { env } from '$env/dynamic/public';
+	import { buyersGetAll } from '$lib/api/buyers/getAll';
+	import { currencies, taxes } from '$lib/stores';
+	import { handleResponse } from '$lib/api/handleResponse';
+	import { invoicesCreate } from '$lib/api/invoices/create';
 	import { jsPDF } from 'jspdf';
+	import { me } from '$lib/api/authentication/me';
+	import { notifications } from '$lib/stores';
 	import { onMount } from 'svelte';
-	import { showNotification } from '$lib/stores';
+	import { sellerInvoiceNotesGetAll } from '$lib/api/sellers/sellerInvoiceNotesGetAll';
+	import type {
+		Buyer,
+		InvoiceCreateResponse,
+		InvoiceDetail,
+		InvoiceForm,
+		Seller,
+		SellerInvoiceNote
+	} from '$lib/types';
 
 	const FONT_FAMILY = 'courier';
 	const FONT_SIZE_HEADER = 20;
@@ -16,54 +28,30 @@
 	const TABLE_WIDTH = PAGE_WIDTH - MARGIN_X * 2;
 	let currentY = MARGIN_Y;
 
-	let buyer: Buyer = null;
-	let buyers: Buyer[] = [];
-	let currencies: Currency[] = [];
-	let form: Invoice = {
+	const EMPTY_INVOICE_DETAIL: InvoiceDetail = {
+		description: '',
+		unit_price: 0,
+		quantity: 0,
+		tax_id: 0
+	};
+	const EMPTY_FORM: InvoiceForm = {
 		buyer_id: '',
 		currency: '',
-		details: [{ description: '', unit_price: 0, quantity: 1, tax_id: '' }],
+		details: [{ ...EMPTY_INVOICE_DETAIL }],
+		due_date: '',
 		issue_date: '',
-		due_date: ''
+		notes: []
 	};
-	let seller: Seller = null;
-	let taxes: Tax[] = [];
 
-	onMount(async () => {
-		const buyersRes = await fetch(`${env.PUBLIC_API_URL}/buyers/get_all`, {
-			credentials: 'include'
-		});
-		const buyersData = await buyersRes.json();
-		buyers = buyersData;
+	let buyers: Buyer[] = [];
+	let form = EMPTY_FORM;
+	let selectedSellerInvoiceNotes: string[] = [];
+	let sellerInvoiceNotes: SellerInvoiceNote[] = [];
 
-		const currenciesRes = await fetch(`${env.PUBLIC_API_URL}/others/currencies`);
-		const currenciesData = await currenciesRes.json();
-		currencies = currenciesData;
-
-		const sellerRes = await fetch(`${env.PUBLIC_API_URL}/authentication/me`, {
-			credentials: 'include'
-		});
-		const sellerData = await sellerRes.json();
-		seller = sellerData;
-
-		const taxesRes = await fetch(`${env.PUBLIC_API_URL}/others/taxes`);
-		const taxesData = await taxesRes.json();
-		taxes = taxesData;
-	});
-
-	const handleBuyerChange = (element) =>
-		(buyer = buyers.find((b) => b.id === element.target.id) || null);
+	$: form.notes = selectedSellerInvoiceNotes;
 
 	const addInvoiceDetail = () => {
-		form.details = [
-			...form.details,
-			{
-				description: '',
-				unit_price: 0,
-				quantity: 1,
-				tax_id: ''
-			}
-		];
+		form.details = [...form.details, { ...EMPTY_INVOICE_DETAIL }];
 	};
 
 	const removeInvoiceDetails = (i: number) => {
@@ -82,120 +70,124 @@
 	};
 
 	const handleSubmit = async () => {
-		const invoiceRes = await fetch(`${env.PUBLIC_API_URL}/invoices/create`, {
-			method: 'POST',
-			credentials: 'include',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(form)
-		});
-		if (!invoiceRes.ok) throw new Error('Create failed');
-		const invoice = await invoiceRes.json();
+		notifications.loading(true);
+		try {
+			const response = await invoicesCreate(form);
+			const invoiceData = await handleResponse<InvoiceCreateResponse>(response);
 
-		if (!seller || !buyer) return;
+			const sellerResponse = await me();
+			const seller = await handleResponse<Seller>(sellerResponse);
 
-		const currencySymbol = currencies.find(
-			(currency) => currency.currency === form.currency
-		).symbol;
+			if (!seller || !invoiceData || !$currencies.length || !$taxes.length) {
+				notifications.error('Error creating invoice');
+				return;
+			}
 
-		const doc = new jsPDF();
-		currentY = MARGIN_Y;
+			const buyer = buyers.find((buyer) => buyer.id === form.buyer_id);
+			const currency = $currencies.find((currency) => currency.currency === form.currency);
+			if (!buyer || !currency) return;
+			const currencySymbol = currency.symbol;
 
-		// Title
-		doc.setFontSize(FONT_SIZE_HEADER);
-		addLine(doc, 'INVOICE', true);
-		currentY += JUMP_LINE;
-
-		doc.setFontSize(FONT_SIZE_NORMAL);
-		addLine(doc, `Invoice No: TRM-${invoice.invoice.number}`);
-		addLine(doc, `Issue Date: ${form.issue_date}`);
-		addLine(doc, `Due Date: ${form.due_date}`);
-		currentY += JUMP_LINE;
-
-		// Issued To (buyer)
-		addLine(doc, 'ISSUED TO:', true);
-		addLine(doc, buyer.name);
-		addLine(doc, buyer.address);
-		addLine(doc, `${buyer.city}, ${buyer.country} (${buyer.postal_code})`);
-		addLine(doc, buyer.email);
-		currentY += JUMP_LINE;
-
-		// Pay To (seller)
-		addLine(doc, 'PAY TO:', true);
-		addLine(doc, seller.name);
-		addLine(doc, seller.address);
-		addLine(doc, `${seller.city}, ${seller.country} (${seller.postal_code})`);
-		addLine(doc, seller.email);
-		addLine(doc, `IBAN: ${seller.bank_account}`);
-		currentY += JUMP_LINE * 2;
-
-		// Table header
-		const colDescX = MARGIN_X;
-		const colUnitPriceX = colDescX + 60;
-		const colQtyX = colUnitPriceX + 30;
-		const colTaxX = colQtyX + 20;
-		const colTotalX = PAGE_WIDTH - MARGIN_X;
-
-		doc.setFillColor(200, 200, 200);
-		doc.rect(MARGIN_X, currentY - JUMP_LINE + 2, TABLE_WIDTH, 8, 'F');
-		doc.setFont(FONT_FAMILY, 'bold');
-		doc.text('DESCRIPTION', colDescX, currentY);
-		doc.text('UNIT PRICE', colUnitPriceX, currentY);
-		doc.text('QTY', colQtyX, currentY);
-		doc.text('TAX', colTaxX, currentY);
-		doc.text('TOTAL', colTotalX, currentY, { align: 'right' });
-		currentY += JUMP_LINE * 2;
-
-		// Details rows
-		let subtotal = 0;
-		let totalTax = 0;
-		doc.setFont(FONT_FAMILY, 'normal');
-		for (const item of invoice.invoice_details) {
-			const total = item.unit_price * item.quantity;
-			subtotal += total;
-
-			// find the tax object
-			const taxObj = taxes.find((t) => t.id === item.tax_id);
-			const rate = taxObj ? taxObj.rate : 0;
-			const taxLabel = taxObj ? taxObj.tax : '';
-			const lineTax = (total * rate) / 100;
-			totalTax += lineTax;
-
-			doc.text(item.description, colDescX, currentY);
-			doc.text(`${currencySymbol} ${item.unit_price}`, colUnitPriceX, currentY);
-			doc.text(String(item.quantity), colQtyX, currentY);
-			doc.text(taxLabel, colTaxX, currentY);
-			doc.text(`${currencySymbol} ${total.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
+			const doc = new jsPDF();
+			currentY = MARGIN_Y;
+			doc.setFontSize(FONT_SIZE_HEADER);
+			addLine(doc, 'INVOICE', true);
+			currentY += JUMP_LINE;
+			doc.setFontSize(FONT_SIZE_NORMAL);
+			addLine(doc, `Invoice No: TRM-${invoiceData.invoice.number}`);
+			addLine(doc, `Issue Date: ${form.issue_date}`);
+			addLine(doc, `Due Date: ${form.due_date}`);
+			currentY += JUMP_LINE;
+			addLine(doc, 'ISSUED TO:', true);
+			addLine(doc, buyer.name);
+			addLine(doc, buyer.address);
+			addLine(doc, `${buyer.city}, ${buyer.country} (${buyer.postal_code})`);
+			addLine(doc, buyer.email);
+			currentY += JUMP_LINE;
+			addLine(doc, 'PAY TO:', true);
+			addLine(doc, seller.name);
+			addLine(doc, seller.address);
+			addLine(doc, `${seller.city}, ${seller.country} (${seller.postal_code})`);
+			addLine(doc, seller.email);
+			addLine(doc, `IBAN: ${seller.bank_account}`);
 			currentY += JUMP_LINE * 2;
+			const colDescX = MARGIN_X;
+			const colUnitPriceX = colDescX + 60;
+			const colQtyX = colUnitPriceX + 30;
+			const colTaxX = colQtyX + 20;
+			const colTotalX = PAGE_WIDTH - MARGIN_X;
+			doc.setFillColor(200, 200, 200);
+			doc.rect(MARGIN_X, currentY - JUMP_LINE + 2, TABLE_WIDTH, 8, 'F');
+			doc.setFont(FONT_FAMILY, 'bold');
+			doc.text('DESCRIPTION', colDescX, currentY);
+			doc.text('UNIT PRICE', colUnitPriceX, currentY);
+			doc.text('QTY', colQtyX, currentY);
+			doc.text('TAX', colTaxX, currentY);
+			doc.text('TOTAL', colTotalX, currentY, { align: 'right' });
+			currentY += JUMP_LINE * 2;
+			let subtotal = 0;
+			let totalTax = 0;
+			doc.setFont(FONT_FAMILY, 'normal');
+			for (const invoiceDetail of invoiceData.invoice_details) {
+				const total = invoiceDetail.unit_price * invoiceDetail.quantity;
+				subtotal += total;
+				const tax = $taxes.find((tax) => tax.id === invoiceDetail.tax_id);
+				if (!tax) {
+					notifications.error('Error selecting taxes');
+					return;
+				}
+				const rate = tax.rate;
+				const taxLabel = tax.tax;
+				const lineTax = (total * rate) / 100;
+				totalTax += lineTax;
+				doc.text(invoiceDetail.description, colDescX, currentY);
+				doc.text(`${currencySymbol} ${invoiceDetail.unit_price}`, colUnitPriceX, currentY);
+				doc.text(String(invoiceDetail.quantity), colQtyX, currentY);
+				doc.text(taxLabel, colTaxX, currentY);
+				doc.text(`${currencySymbol} ${total.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
+				currentY += JUMP_LINE * 2;
+			}
+			doc.text('SUBTOTAL', colQtyX, currentY);
+			doc.text(`${currencySymbol} ${subtotal.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
+			currentY += JUMP_LINE;
+			doc.text('TAX', colQtyX, currentY);
+			doc.text(`${currencySymbol} ${totalTax.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
+			currentY += JUMP_LINE;
+			doc.setFont(FONT_FAMILY, 'bold');
+			doc.text('TOTAL', colQtyX, currentY);
+			doc.text(`${currencySymbol} ${(subtotal + totalTax).toFixed(2)}`, colTotalX, currentY, {
+				align: 'right'
+			});
+			currentY += JUMP_LINE * 2;
+			doc.setFontSize(FONT_SIZE_SMALL);
+			doc.setFont(FONT_FAMILY, 'normal');
+			for (const invoiceNote of invoiceData.invoice_notes) {
+				addLine(doc, invoiceNote.note);
+			}
+			doc.save('invoice.pdf');
+			notifications.add('Invoice created', 'success');
+			selectedSellerInvoiceNotes = [];
+			form = { ...EMPTY_FORM, details: [{ ...EMPTY_INVOICE_DETAIL }] };
+		} catch (error: unknown) {
+			notifications.error(error);
+		} finally {
+			notifications.loading(false);
 		}
-
-		// Totals
-		doc.text('SUBTOTAL', colQtyX, currentY);
-		doc.text(`${currencySymbol} ${subtotal.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
-		currentY += JUMP_LINE;
-
-		doc.text('TAX', colQtyX, currentY);
-		doc.text(`${currencySymbol} ${totalTax.toFixed(2)}`, colTotalX, currentY, { align: 'right' });
-		currentY += JUMP_LINE;
-
-		doc.setFont(FONT_FAMILY, 'bold');
-		doc.text('TOTAL', colQtyX, currentY);
-		doc.text(`${currencySymbol} ${(subtotal + totalTax).toFixed(2)}`, colTotalX, currentY, {
-			align: 'right'
-		});
-		currentY += JUMP_LINE * 2;
-
-		// Footer
-		doc.setFontSize(FONT_SIZE_SMALL);
-		doc.setFont(FONT_FAMILY, 'normal');
-		doc.text(
-			'Invoice exempt from VAT under Directive 2006/112/EC and Article 25 of Law 37/1992',
-			MARGIN_X,
-			currentY
-		);
-
-		doc.save('invoice.pdf');
-		showNotification('Create invoice success', 'success');
 	};
+
+	onMount(async () => {
+		notifications.loading(true);
+		try {
+			const buyersResponse = await buyersGetAll();
+			buyers = await handleResponse<Buyer[]>(buyersResponse);
+			const sellerInvoiceNotesResponse = await sellerInvoiceNotesGetAll();
+			sellerInvoiceNotes = await handleResponse<SellerInvoiceNote[]>(sellerInvoiceNotesResponse);
+		} catch (error: unknown) {
+			notifications.error(error);
+		} finally {
+			notifications.loading(false);
+		}
+	});
 </script>
 
 <svelte:head>
@@ -204,7 +196,7 @@
 <h1>Create Invoice</h1>
 <form on:submit|preventDefault={handleSubmit}>
 	<label for="buyer">Buyer:</label>
-	<select bind:value={form.buyer_id} id="buyer" on:change={handleBuyerChange}>
+	<select bind:value={form.buyer_id} id="buyer">
 		<option value="" disabled>Select buyer</option>
 		{#each buyers as buyer}
 			<option value={buyer.id}>{buyer.name} ({buyer.email})</option>
@@ -215,13 +207,13 @@
 	<label for="due_date">Due date:</label>
 	<input bind:value={form.due_date} id="due_date" type="date" />
 	<label for="currency">Currency:</label>
-	<select bind:value={form.currency} for="currency">
+	<select bind:value={form.currency} id="currency">
 		<option value="" disabled>Select tax</option>
-		{#each currencies as currency}
+		{#each $currencies as currency}
 			<option value={currency.currency}>{currency.symbol} {currency.currency}</option>
 		{/each}
 	</select>
-	<div class="invoice-detail">
+	<div class="invoice-details">
 		<p>Description:</p>
 		<p>Unit price:</p>
 		<p>Tax:</p>
@@ -239,16 +231,16 @@
 			/>
 			<select bind:value={item.tax_id} id="tax_id">
 				<option value="" disabled>Select tax</option>
-				{#each taxes as tax}
+				{#each $taxes as tax}
 					<option value={tax.id}>{tax.tax}</option>
 				{/each}
 			</select>
 			<input
 				bind:value={item.quantity}
 				id="quantity"
-				min="1"
+				min="0.01"
 				placeholder="Quantity"
-				step="1"
+				step="0.01"
 				type="number"
 			/>
 			<button class="button-danger" type="button" on:click={() => removeInvoiceDetails(i)}>-</button
@@ -256,5 +248,17 @@
 		{/each}
 	</div>
 	<button type="button" on:click={addInvoiceDetail}>+ Add Detail</button>
+	<div class="invoice-notes">
+		{#each sellerInvoiceNotes as sellerInvoiceNote}
+			<label>
+				<input
+					type="checkbox"
+					bind:group={selectedSellerInvoiceNotes}
+					value={sellerInvoiceNote.id}
+				/>
+				{sellerInvoiceNote.note}
+			</label>
+		{/each}
+	</div>
 	<button type="submit">Generate Invoice PDF</button>
 </form>
