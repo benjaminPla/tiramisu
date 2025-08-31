@@ -32,14 +32,17 @@ ALTER TABLE sellers
     ADD CONSTRAINT fk_sellers_country 
     FOREIGN KEY (country) REFERENCES countries(country);
 
-CREATE TABLE seller_notes (
+CREATE TABLE seller_invoice_notes (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     note VARCHAR(500) NOT NULL,
     seller_id UUID NOT NULL
 );
-ALTER TABLE seller_notes
-    ADD CONSTRAINT fk_seller_notes_seller
+ALTER TABLE seller_invoice_notes
+    ADD CONSTRAINT fk_seller_invoice_notes_seller
     FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE;
+ALTER TABLE seller_invoice_notes
+    ADD CONSTRAINT uq_seller_invoice_notes_note_seller UNIQUE (note, seller_id);
+
 
 
 CREATE TABLE buyers (

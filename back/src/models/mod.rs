@@ -67,6 +67,13 @@ pub struct Seller {
 }
 
 #[derive(Deserialize, FromRow, Serialize)]
+pub struct SellerNote {
+    id: Uuid,
+    note: String,
+    seller_id: Uuid,
+}
+
+#[derive(Deserialize, FromRow, Serialize)]
 pub struct Tax {
     id: i32,
     rate: f64,

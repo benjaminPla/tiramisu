@@ -22,7 +22,7 @@ pub async fn handler(
 ) -> Result<StatusCode, (StatusCode, String)> {
     query(
         "
-        INSERT INTO seller_notes (note, seller_id)
+        INSERT INTO seller_invoice_notes (note, seller_id)
         VALUES ($1, $2)
         RETURNING *
         ",
