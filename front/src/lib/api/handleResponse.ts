@@ -1,7 +1,7 @@
 import { goto } from '$app/navigation';
 
-export async function handleResponse<T>(response: Response): Promise<T> {
-	if (response.ok) return response.json() as Promise<T>;
+export async function handleResponse<T>(response: Response, isJson = true): Promise<T | number> {
+	if (response.ok) return isJson ? (response.json() as Promise<T>) : response.status;
 
 	let message: string | undefined;
 	try {

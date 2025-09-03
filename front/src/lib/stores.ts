@@ -1,33 +1,5 @@
-import { env } from '$env/dynamic/public';
-import { readable } from 'svelte/store';
-import type { Country, Currency, Notification, Tax } from './types';
+import type { Notification } from './types';
 import { writable, type Writable } from 'svelte/store';
-
-const apiUrl = env.PUBLIC_API_URL;
-
-// @ts-ignore
-export const countries = readable<Country[]>([], async (set) => {
-	try {
-		const res = await fetch(`${apiUrl}/others/countries`);
-		if (!res.ok) throw new Error('Error getting countries');
-		const data = await res.json();
-		set(data);
-	} catch (error: unknown) {
-		notifications.error(error);
-	}
-});
-
-// @ts-ignore
-export const currencies = readable<Currency[]>([], async (set) => {
-	try {
-		const res = await fetch(`${apiUrl}/others/currencies`);
-		if (!res.ok) throw new Error('Error getting currencies');
-		const data = await res.json();
-		set(data);
-	} catch (error: unknown) {
-		notifications.error(error);
-	}
-});
 
 export class NotificationStore {
 	private store: Writable<Notification[]>;
@@ -76,15 +48,3 @@ export class NotificationStore {
 	}
 }
 export const notifications = new NotificationStore();
-
-// @ts-ignore
-export const taxes = readable<Tax[]>([], async (set) => {
-	try {
-		const res = await fetch(`${apiUrl}/others/taxes`);
-		if (!res.ok) throw new Error('Error getting taxes');
-		const data = await res.json();
-		set(data);
-	} catch (error: unknown) {
-		notifications.error(error);
-	}
-});

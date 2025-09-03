@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { countries } from '$lib/stores';
 	import { handleResponse } from '$lib/api/handleResponse';
 	import { me } from '$lib/api/authentication/me';
 	import { notifications } from '$lib/stores';
 	import { onMount } from 'svelte';
 	import { sellerUpdate } from '$lib/api/sellers/update';
 	import type { SellerForm, Seller } from '$lib/types';
+
+	export let countries;
 
 	const EMPTY_FORM: SellerForm = {
 		address: '',
@@ -23,7 +24,8 @@
 		notifications.loading(true);
 		try {
 			const response = await sellerUpdate(form);
-			await handleResponse(response);
+			const data = await handleResponse<Seller>(response);
+			form = data;
 		} catch (error: unknown) {
 			notifications.error(error);
 		} finally {
@@ -61,7 +63,7 @@
 		<label for="country-seller">Country:</label>
 		<select id="country-seller" bind:value={form.country} required>
 			<option value="" disabled>Select country</option>
-			{#each $countries as country}
+			{#each countries as country}
 				<option value={country}>{country}</option>
 			{/each}
 		</select>

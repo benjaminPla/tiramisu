@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { buyersGetAll } from '$lib/api/buyers/getAll';
-	import { currencies, taxes } from '$lib/stores';
 	import { handleResponse } from '$lib/api/handleResponse';
 	import { invoicesCreate } from '$lib/api/invoices/create';
 	import { jsPDF } from 'jspdf';
@@ -10,12 +9,21 @@
 	import { sellerInvoiceNotesGetAll } from '$lib/api/sellers/sellerInvoiceNotesGetAll';
 	import type {
 		Buyer,
+		Currency,
 		InvoiceCreateResponse,
 		InvoiceDetail,
 		InvoiceForm,
 		Seller,
-		SellerInvoiceNote
+		SellerInvoiceNote,
+		Tax
 	} from '$lib/types';
+
+	export let data: {
+		currencies: Currency[];
+		taxes: Tax[];
+	};
+
+	const { currencies, taxes } = data;
 
 	const FONT_FAMILY = 'courier';
 	const FONT_SIZE_HEADER = 20;
@@ -78,13 +86,13 @@
 			const sellerResponse = await me();
 			const seller = await handleResponse<Seller>(sellerResponse);
 
-			if (!seller || !invoiceData || !$currencies.length || !$taxes.length) {
+			if (!seller || !invoiceData || !currencies.length || !taxes.length) {
 				notifications.error('Error creating invoice');
 				return;
 			}
 
 			const buyer = buyers.find((buyer) => buyer.id === form.buyer_id);
-			const currency = $currencies.find((currency) => currency.currency === form.currency);
+			const currency = currencies.find((currency: Currency) => currency.currency === form.currency);
 			if (!buyer || !currency) return;
 			const currencySymbol = currency.symbol;
 
@@ -131,7 +139,7 @@
 			for (const invoiceDetail of invoiceData.invoice_details) {
 				const total = invoiceDetail.unit_price * invoiceDetail.quantity;
 				subtotal += total;
-				const tax = $taxes.find((tax) => tax.id === invoiceDetail.tax_id);
+				const tax = taxes.find((tax: Tax) => tax.id === invoiceDetail.tax_id);
 				if (!tax) {
 					notifications.error('Error selecting taxes');
 					return;
@@ -209,8 +217,8 @@
 	<label for="currency">Currency:</label>
 	<select bind:value={form.currency} id="currency">
 		<option value="" disabled>Select tax</option>
-		{#each $currencies as currency}
-			<option value={currency.currency}>{currency.symbol} {currency.currency}</option>
+		{#each currencies.sort( (a: Currency, b: Currency) => a.currency.localeCompare(b.currency) ) as currency}
+			<option value={currency.currency}>{currency.currency} {currency.symbol}</option>
 		{/each}
 	</select>
 	<div class="invoice-details">
@@ -231,7 +239,7 @@
 			/>
 			<select bind:value={item.tax_id} id="tax_id">
 				<option value="" disabled>Select tax</option>
-				{#each $taxes as tax}
+				{#each taxes as tax}
 					<option value={tax.id}>{tax.tax}</option>
 				{/each}
 			</select>

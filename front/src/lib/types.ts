@@ -43,7 +43,7 @@ export type InvoiceForm = {
 	details: InvoiceDetail[];
 	due_date: string;
 	issue_date: string;
-    notes: string[]
+	notes: string[];
 };
 
 export type Notification = {
@@ -81,9 +81,12 @@ export type Tax = {
 	tax: string;
 };
 
+export type Vendor = VendorForm & {
+	id: string;
+};
+
 export type VendorForm = {
 	address: string;
 	name: string;
-	seller_id: string;
 	vat_number: string;
 };
