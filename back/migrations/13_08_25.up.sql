@@ -77,6 +77,9 @@ ALTER TABLE vendors
     FOREIGN KEY (seller_id) REFERENCES sellers(id) ON DELETE CASCADE;
 ALTER TABLE vendors
     ADD CONSTRAINT uq_vendors_id_seller UNIQUE (id, seller_id);
+ALTER TABLE vendors
+    ADD CONSTRAINT uq_vendors_name_per_seller
+    UNIQUE (seller_id, name);
 
 CREATE TABLE expense_categories (
     category VARCHAR(100) NOT NULL,

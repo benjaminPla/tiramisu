@@ -1,0 +1,27 @@
+use crate::controllers::vendors::{create, get_all};
+use crate::helpers::app_state::AppState;
+use crate::middlewares::with_auth;
+use axum::{
+    middleware::from_fn_with_state,
+    routing::{get, post},
+    Router,
+};
+use std::sync::Arc;
+
+pub struct VendorsRouter;
+
+impl VendorsRouter {
+    pub fn new(app_state: Arc<AppState>) -> Router<Arc<AppState>> {
+        Router::new()
+            .route(
+                "/create",
+                post(create::handler)
+                    .layer(from_fn_with_state(app_state.clone(), with_auth::handler)),
+            )
+            .route(
+                "/get_all",
+                get(get_all::handler)
+                    .layer(from_fn_with_state(app_state.clone(), with_auth::handler)),
+            )
+    }
+}

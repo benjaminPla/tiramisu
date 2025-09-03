@@ -79,3 +79,12 @@ pub struct Tax {
     rate: f64,
     tax: String,
 }
+
+#[derive(Deserialize, FromRow, Serialize)]
+pub struct Vendor {
+    address: String,
+    id: Uuid,
+    name: String,
+    seller_id: Uuid,
+    vat_number: String,
+}

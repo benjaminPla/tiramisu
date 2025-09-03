@@ -3,6 +3,7 @@ mod buyers;
 mod invoices;
 mod others;
 mod sellers;
+mod vendors;
 
 use crate::helpers::app_state::AppState;
 use authentication::AuthenticationRouter;
@@ -18,6 +19,7 @@ use tower_http::{
     cors::{AllowOrigin, Any, CorsLayer},
     timeout::TimeoutLayer,
 };
+use vendors::VendorsRouter;
 
 pub struct MainRouter;
 
@@ -35,6 +37,7 @@ impl MainRouter {
                     .nest("/invoices", InvoicesRouter::new(app_state.clone()))
                     .nest("/others", OthersRouter::new(app_state.clone()))
                     .nest("/sellers", SellersRouter::new(app_state.clone()))
+                    .nest("/vendors", VendorsRouter::new(app_state.clone()))
                     .with_state(app_state.clone()),
             )
             .layer(Self::cors())
